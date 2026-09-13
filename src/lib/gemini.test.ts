@@ -1,11 +1,22 @@
 import { describe, expect, it } from "vitest";
-import { normalizeExtractions, parseDataUrl } from "./gemini";
+import {
+  isGeminiImageMime,
+  normalizeExtractions,
+  parseDataUrl,
+  toGeminiMime,
+} from "./gemini";
 
 describe("gemini helpers", () => {
   it("parses a jpeg data URL", () => {
     const parsed = parseDataUrl("data:image/jpeg;base64,abc");
     expect(parsed.mimeType).toBe("image/jpeg");
     expect(parsed.data).toBe("abc");
+  });
+
+  it("rejects SVG for Gemini and maps jpg to jpeg", () => {
+    expect(isGeminiImageMime("image/svg+xml")).toBe(false);
+    expect(isGeminiImageMime("image/jpeg")).toBe(true);
+    expect(toGeminiMime("image/jpg")).toBe("image/jpeg");
   });
 
   it("drops unknown slots and clamps confidence", () => {

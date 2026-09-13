@@ -21,7 +21,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "No captures" }, { status: 400 });
   }
 
-  const oversized = body.captures.some(
+  const oversized = [...body.captures, ...(body.goldens ?? [])].some(
     (capture) => (capture.dataUrl?.length ?? 0) > 2_800_000,
   );
   if (oversized) {

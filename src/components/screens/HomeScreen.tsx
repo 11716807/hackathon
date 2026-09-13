@@ -18,6 +18,7 @@ export function HomeScreen() {
     album,
     audit,
     resetCaptures,
+    hasTaughtAlbum,
   } = useSession();
   const last = audit[0];
 
@@ -28,8 +29,8 @@ export function HomeScreen() {
           {t(locale, "tagline")}
         </p>
         <p className="mt-3 text-base leading-7 text-gf-muted">
-          Five photos. A start gate. The model reads the label; the rules decide
-          HOLD or CLEAR.
+          First photograph a real good setup (golden album). Then photograph
+          today’s setup. The gate compares the two.
         </p>
       </section>
 
@@ -119,6 +120,23 @@ export function HomeScreen() {
         </p>
       </section>
 
+      <p
+        className={`rounded-2xl px-4 py-3 text-sm font-semibold ${
+          hasTaughtAlbum
+            ? "bg-[#ecfdf3] text-gf-clear"
+            : "bg-[#fdf2f8] text-gf-hold"
+        }`}
+      >
+        {hasTaughtAlbum ? t(locale, "taughtReady") : t(locale, "taughtMissing")}
+      </p>
+
+      <Link
+        href="/goldens/teach"
+        className="flex h-14 items-center justify-center rounded-2xl border-2 border-gf-gold bg-white text-base font-semibold text-gf-gold"
+      >
+        {hasTaughtAlbum ? t(locale, "reteachGoldens") : t(locale, "teachGoldens")}
+      </Link>
+
       <Link
         href="/check"
         onClick={() => resetCaptures()}
@@ -152,14 +170,12 @@ export function HomeScreen() {
         )}
       </section>
 
-      {role === "supervisor" ? (
-        <Link
-          href="/goldens"
-          className="text-center text-sm font-semibold text-gf-gold underline-offset-4 hover:underline"
-        >
-          {t(locale, "goldens")}
-        </Link>
-      ) : null}
+      <Link
+        href="/goldens"
+        className="text-center text-sm font-semibold text-gf-gold underline-offset-4 hover:underline"
+      >
+        {t(locale, "goldens")}
+      </Link>
     </div>
   );
 }

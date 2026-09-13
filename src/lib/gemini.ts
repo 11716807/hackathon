@@ -16,12 +16,30 @@ const ALLOWED_FLAGS: VisualFlag[] = [
   "unreadable",
 ];
 
+const GEMINI_IMAGE_MIMES = new Set([
+  "image/jpeg",
+  "image/jpg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+  "image/heic",
+  "image/heif",
+]);
+
 export function parseDataUrl(dataUrl: string): { mimeType: string; data: string } {
-  const match = dataUrl.match(/^data:([^;]+);base64,(.+)$/);
+  const match = dataUrl.match(/^data:([^;,]+);base64,(.+)$/);
   if (!match) {
     throw new Error("Capture must be a base64 data URL");
   }
   return { mimeType: match[1], data: match[2] };
+}
+
+export function isGeminiImageMime(mimeType: string): boolean {
+  return GEMINI_IMAGE_MIMES.has(mimeType.toLowerCase());
+}
+
+export function toGeminiMime(mimeType: string): string {
+  return mimeType.toLowerCase() === "image/jpg" ? "image/jpeg" : mimeType;
 }
 
 function extractJson(text: string): unknown {
@@ -108,18 +126,33 @@ Rules:
     ];
 
   for (const capture of input.captures) {
+    const today = parseDataUrl(capture.dataUrl);
+    if (!isGeminiImageMime(today.mimeType)) {
+      throw new Error(
+        `Unsupported photo type for ${capture.slotId}: ${today.mimeType}. Use the camera or a JPG/PNG.`,
+      );
+    }
+
+    const golden = capture.goldenDataUrl
+      ? parseDataUrl(capture.goldenDataUrl)
+      : null;
+    const goldenOk = golden && isGeminiImageMime(golden.mimeType);
+
     parts.push({
-      text: `\nSLOT ${capture.slotId} — GOLDEN (approved) then TODAY (live):`,
+      text: goldenOk
+        ? `\nSLOT ${capture.slotId} — GOLDEN (approved PNG) then TODAY (live):`
+        : `\nSLOT ${capture.slotId} — TODAY only (judge against work order ${input.workOrderSku} and the slot checklist):`,
     });
-    if (capture.goldenDataUrl) {
-      const golden = parseDataUrl(capture.goldenDataUrl);
+    if (golden && goldenOk) {
       parts.push({
-        inlineData: { mimeType: golden.mimeType, data: golden.data },
+        inlineData: {
+          mimeType: toGeminiMime(golden.mimeType),
+          data: golden.data,
+        },
       });
     }
-    const today = parseDataUrl(capture.dataUrl);
     parts.push({
-      inlineData: { mimeType: today.mimeType, data: today.data },
+      inlineData: { mimeType: toGeminiMime(today.mimeType), data: today.data },
     });
   }
 

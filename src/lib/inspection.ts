@@ -2,6 +2,7 @@ import { requireAlbum } from "./catalog";
 import { decideGate } from "./gate";
 import { extractSlotsWithGemini } from "./gemini";
 import { loadGoldenDataUrl } from "./goldens";
+import { pickGolden } from "./taughtGoldens";
 import { estimateImpact } from "./impact";
 import { practiceExtractions, type PracticeScript } from "./practice";
 import { applyRiskRules } from "./rules";
@@ -16,6 +17,7 @@ export interface InspectRequest {
   albumId: string;
   workOrderSku?: string;
   captures: { slotId: SlotId; dataUrl: string }[];
+  goldens?: { slotId: SlotId; dataUrl: string }[];
   mode?: EngineMode;
   practiceScript?: PracticeScript;
 }
@@ -43,11 +45,22 @@ export async function runInspection(
     toolTrace.push(`Practice script: ${script}`);
     toolTrace.push("Skipped Gemini — practice path uses a fixed extraction");
   } else {
+    const taught = new Map(
+      (request.goldens ?? []).map((item) => [item.slotId, item.dataUrl]),
+    );
+    const usedTaught = taught.size > 0;
+    toolTrace.push(
+      usedTaught
+        ? "Using taught real golden photos (not drawings)"
+        : "Using placeholder golden drawings converted to PNG",
+    );
     const captures = await Promise.all(
       request.captures.map(async (capture) => ({
         ...capture,
-        goldenDataUrl:
-          (await loadGoldenDataUrl(album.id, capture.slotId)) ?? undefined,
+        goldenDataUrl: pickGolden(
+          taught.get(capture.slotId),
+          await loadGoldenDataUrl(album.id, capture.slotId),
+        ),
       })),
     );
     const { extractions: live, model: usedModel } =

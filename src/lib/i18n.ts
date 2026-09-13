@@ -50,6 +50,16 @@ const copy = {
     overrideNeeded: "Type why you are clearing a HOLD.",
     logged: "Logged to the shift record.",
     minutes: "min",
+    teachGoldens: "Photograph a real golden album",
+    reteachGoldens: "Retake golden album",
+    teachTitle: "Teach the golden album",
+    teachHint:
+      "Shoot the GOOD setup once. Same five slots. This becomes the real album.",
+    saveGoldens: "Save as golden album",
+    taughtReady: "Real golden album is set. Now run a changeover check.",
+    taughtMissing: "Still using drawings. Photograph a real album first.",
+    kitTitle: "Simple real kit (table is enough)",
+    clearTaught: "Remove real album",
   },
   hi: {
     brand: "गोल्डन फ्रेम",
@@ -100,6 +110,16 @@ const copy = {
     overrideNeeded: "HOLD क्लियर करने की वजह लिखें।",
     logged: "शिफ्ट रिकॉर्ड में दर्ज।",
     minutes: "मिनट",
+    teachGoldens: "असली गोल्डन एल्बम फोटो करें",
+    reteachGoldens: "गोल्डन दोबारा लें",
+    teachTitle: "गोल्डन एल्बम सिखाएँ",
+    teachHint:
+      "एक बार सही सेटअप की पाँच फोटो लें। यही असली एल्बम बनेगा।",
+    saveGoldens: "गोल्डन एल्बम सहेजें",
+    taughtReady: "असली गोल्डन सेट है। अब चेंजओवर जाँच करें।",
+    taughtMissing: "अभी ड्रॉइंग चल रही है। पहले असली एल्बम फोटो करें।",
+    kitTitle: "आसान असली किट (टेबल काफी)",
+    clearTaught: "असली एल्बम हटाएँ",
   },
 } as const;
 

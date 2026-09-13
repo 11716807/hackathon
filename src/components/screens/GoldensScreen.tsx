@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { goldenPath } from "@/lib/catalog";
 import { t } from "@/lib/i18n";
 import { useSession } from "@/lib/session";
 
 export function GoldensScreen() {
-  const { locale, album } = useSession();
+  const { locale, album, hasTaughtAlbum, goldenSrc, clearTaughtAlbum, setNotice } =
+    useSession();
 
   return (
     <div className="flex flex-1 flex-col gap-4">
@@ -21,6 +21,11 @@ export function GoldensScreen() {
           {t(locale, "home")}
         </Link>
       </div>
+
+      <p className="text-sm font-medium text-gf-muted">
+        {hasTaughtAlbum ? t(locale, "taughtReady") : t(locale, "taughtMissing")}
+      </p>
+
       <div className="grid grid-cols-2 gap-3">
         {album.slots.map((slot) => (
           <figure
@@ -28,7 +33,7 @@ export function GoldensScreen() {
             className="overflow-hidden rounded-2xl border border-gf-line bg-gf-card"
           >
             <img
-              src={goldenPath(album, slot.id)}
+              src={goldenSrc(slot.id)}
               alt={slot.titleEn}
               className="aspect-square w-full object-cover"
             />
@@ -38,6 +43,26 @@ export function GoldensScreen() {
           </figure>
         ))}
       </div>
+
+      <Link
+        href="/goldens/teach"
+        className="gf-cta flex h-14 items-center justify-center rounded-2xl text-base font-semibold"
+      >
+        {hasTaughtAlbum ? t(locale, "reteachGoldens") : t(locale, "teachGoldens")}
+      </Link>
+
+      {hasTaughtAlbum ? (
+        <button
+          type="button"
+          onClick={() => {
+            clearTaughtAlbum();
+            setNotice(t(locale, "taughtMissing"));
+          }}
+          className="text-sm font-semibold text-gf-hold"
+        >
+          {t(locale, "clearTaught")}
+        </button>
+      ) : null}
     </div>
   );
 }

@@ -8,8 +8,15 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { ALBUMS, requireAlbum } from "./catalog";
+import { ALBUMS, goldenPath, requireAlbum } from "./catalog";
 import { mustFixSlotIds } from "./gate";
+import {
+  albumIsTaught,
+  readTaughtStore,
+  writeTaughtStore,
+  type TaughtAlbum,
+  type TaughtStore,
+} from "./taughtGoldens";
 import type {
   Album,
   AuditEntry,
@@ -52,6 +59,11 @@ interface SessionState {
   logGate: (entry: Omit<AuditEntry, "id" | "at">) => void;
   slotsToShoot: SlotId[];
   setNotice: (notice: string | null) => void;
+  taught: TaughtAlbum;
+  hasTaughtAlbum: boolean;
+  goldenSrc: (slotId: SlotId) => string;
+  saveTaughtAlbum: (photos: TaughtAlbum) => void;
+  clearTaughtAlbum: () => void;
 }
 
 const SessionContext = createContext<SessionState | null>(null);
@@ -110,11 +122,13 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const [result, setResult] = useState<InspectionResult | null>(null);
   const [audit, setAudit] = useState<AuditEntry[]>([]);
   const [notice, setNotice] = useState<string | null>(null);
+  const [taughtStore, setTaughtStore] = useState<TaughtStore>({});
 
   useEffect(() => {
     // Persist across visits; run after mount to avoid SSR mismatch.
     setPrefs(readPrefs());
     setAudit(readAudit());
+    setTaughtStore(readTaughtStore());
     setHydrated(true);
   }, []);
 
@@ -129,6 +143,11 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   }, [audit, hydrated]);
 
   const album = requireAlbum(prefs.albumId);
+  const taught = taughtStore[prefs.albumId] ?? {};
+  const hasTaughtAlbum = albumIsTaught(
+    taught,
+    album.slots.map((slot) => slot.id),
+  );
 
   const slotsToShoot = useMemo(() => {
     if (!result) return album.slots.map((slot) => slot.id);
@@ -180,6 +199,20 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       ].slice(0, 40)),
     slotsToShoot,
     setNotice,
+    taught,
+    hasTaughtAlbum,
+    goldenSrc: (slotId) => taught[slotId] ?? goldenPath(album, slotId),
+    saveTaughtAlbum: (photos) => {
+      const next = { ...taughtStore, [prefs.albumId]: photos };
+      setTaughtStore(next);
+      writeTaughtStore(next);
+    },
+    clearTaughtAlbum: () => {
+      const next = { ...taughtStore };
+      delete next[prefs.albumId];
+      setTaughtStore(next);
+      writeTaughtStore(next);
+    },
   };
 
   return (

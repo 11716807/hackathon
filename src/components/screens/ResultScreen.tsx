@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { DecisionCard } from "@/components/DecisionCard";
-import { goldenPath } from "@/lib/catalog";
 import { t } from "@/lib/i18n";
 import { formatInr } from "@/lib/impact";
 import { useSession } from "@/lib/session";
@@ -60,6 +59,7 @@ export function ResultScreen() {
     logGate,
     setNotice,
     resetCaptures,
+    goldenSrc,
   } = useSession();
   const [reason, setReason] = useState("");
   const [traceOpen, setTraceOpen] = useState(false);
@@ -139,7 +139,7 @@ export function ResultScreen() {
             <div key={slot.id} className="w-36 shrink-0">
               <div className="grid grid-cols-2 overflow-hidden rounded-xl border border-gf-line">
                 <img
-                  src={goldenPath(album, slot.id)}
+                  src={goldenSrc(slot.id)}
                   alt=""
                   className="aspect-square object-cover"
                 />

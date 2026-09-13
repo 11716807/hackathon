@@ -4,7 +4,6 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { CameraSheet } from "@/components/CameraSheet";
-import { goldenPath } from "@/lib/catalog";
 import { t } from "@/lib/i18n";
 import { useSession } from "@/lib/session";
 import type { InspectionResult, SlotSpec } from "@/lib/types";
@@ -21,6 +20,9 @@ export function CheckScreen() {
     mode,
     setResult,
     setNotice,
+    hasTaughtAlbum,
+    taught,
+    goldenSrc,
   } = useSession();
   const [active, setActive] = useState<SlotSpec | null>(null);
   const [checking, setChecking] = useState(false);
@@ -56,6 +58,15 @@ export function CheckScreen() {
             slotId: capture!.slotId,
             dataUrl: capture!.dataUrl,
           })),
+        goldens: hasTaughtAlbum
+          ? album.slots
+              .map((slot) =>
+                taught[slot.id]
+                  ? { slotId: slot.id, dataUrl: taught[slot.id]! }
+                  : null,
+              )
+              .filter(Boolean)
+          : undefined,
       };
       const response = await fetch("/api/inspect", {
         method: "POST",
@@ -102,7 +113,7 @@ export function CheckScreen() {
             >
               <div className="relative aspect-[4/3] bg-gf-card-2">
                 <img
-                  src={shot?.dataUrl ?? goldenPath(album, slot.id)}
+                  src={shot?.dataUrl ?? goldenSrc(slot.id)}
                   alt=""
                   className={`h-full w-full object-cover ${shot ? "" : "opacity-40"}`}
                 />
@@ -146,7 +157,7 @@ export function CheckScreen() {
           open
           slot={active}
           locale={locale}
-          goldenSrc={goldenPath(album, active.id)}
+          goldenSrc={goldenSrc(active.id)}
           onClose={() => setActive(null)}
           onCapture={(dataUrl) => saveCapture(active.id, dataUrl)}
         />
