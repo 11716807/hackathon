@@ -28,33 +28,49 @@ export function TeachScreen() {
   }
 
   const kit =
-    album.industry === "packaging"
+    album.industry === "desk"
       ? locale === "hi"
         ? [
-            `लेबल: बड़े अक्षरों में ${album.sku} BLUE लिखें`,
-            "गार्ड: गत्ता बंद रखें",
-            "जिग + पहला पीस: बोतल / कप",
-            "हॉपर: एक कटोरा",
+            "लैपटॉप डेस्क पर रखें",
+            `चार्जर पर कागज़: बड़े अक्षर ${album.sku}`,
+            "ढक्कन बंद करें",
+            "केबल लैपटॉप में लगाएँ",
+            "चार्जिंग लाइट दिखे",
           ]
         : [
-            `Label: write ${album.sku} BLUE in big letters`,
-            "Guard: cardboard flap CLOSED",
-            "Jig + first piece: a bottle or cup",
-            "Hopper: a bowl",
+            "Laptop sitting on the desk",
+            `Sticky note on the charger: big letters ${album.sku}`,
+            "Lid CLOSED",
+            "Cable plugged into the laptop",
+            "Charging light / battery icon ON",
           ]
-      : locale === "hi"
-        ? [
-            `ट्रैवलर: ${album.sku} लिखें`,
-            "कवर बंद",
-            "फिक्स्चर: कोई बॉक्स / किताब",
-            "बिन: एक डिब्बा",
-          ]
-        : [
-            `Traveler: write ${album.sku} large`,
-            "Cover CLOSED",
-            "Fixture: a box or book",
-            "Bin: a small box",
-          ];
+      : album.industry === "packaging"
+        ? locale === "hi"
+          ? [
+              `लेबल: बड़े अक्षरों में ${album.sku} BLUE लिखें`,
+              "गार्ड: गत्ता बंद रखें",
+              "जिग + पहला पीस: बोतल / कप",
+              "हॉपर: एक कटोरा",
+            ]
+          : [
+              `Label: write ${album.sku} BLUE in big letters`,
+              "Guard: cardboard flap CLOSED",
+              "Jig + first piece: a bottle or cup",
+              "Hopper: a bowl",
+            ]
+        : locale === "hi"
+          ? [
+              `ट्रैवलर: ${album.sku} लिखें`,
+              "कवर बंद",
+              "फिक्स्चर: कोई बॉक्स / किताब",
+              "बिन: एक डिब्बा",
+            ]
+          : [
+              `Traveler: write ${album.sku} large`,
+              "Cover CLOSED",
+              "Fixture: a box or book",
+              "Bin: a small box",
+            ];
 
   return (
     <div className="flex flex-1 flex-col">

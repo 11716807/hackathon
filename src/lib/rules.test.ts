@@ -88,6 +88,52 @@ describe("applyRiskRules", () => {
     );
   });
 
+  it("does not retake a clear photo just because confidence is missing", () => {
+    const findings = applyRiskRules({
+      albumId: "desk-charge",
+      workOrderSku: "A-17",
+      capturedSlotIds: ["jig", "label", "guard", "hopper", "first_piece"],
+      extractions: [
+        {
+          slotId: "jig",
+          extractedText: "",
+          flags: ["jig_aligned"],
+          visualSummary: "laptop on desk",
+          confidence: 0,
+        },
+        {
+          slotId: "label",
+          extractedText: "A-17",
+          flags: ["label_present"],
+          visualSummary: "sticker",
+          confidence: 0,
+        },
+        {
+          slotId: "guard",
+          extractedText: "",
+          flags: ["guard_closed"],
+          visualSummary: "lid shut",
+          confidence: 0,
+        },
+        {
+          slotId: "hopper",
+          extractedText: "",
+          flags: ["hopper_ok"],
+          visualSummary: "plugged in",
+          confidence: 0,
+        },
+        {
+          slotId: "first_piece",
+          extractedText: "",
+          flags: ["first_piece_ok"],
+          visualSummary: "charging",
+          confidence: 0,
+        },
+      ],
+    });
+    expect(findings.every((item) => item.severity !== "retake")).toBe(true);
+  });
+
   it("asks for a retake when confidence is low", () => {
     const findings = applyRiskRules({
       albumId: "line3-a17",

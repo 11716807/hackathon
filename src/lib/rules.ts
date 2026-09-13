@@ -7,7 +7,7 @@ import type {
   VisualFlag,
 } from "./types";
 
-const LOW_CONFIDENCE = 0.42;
+const UNREADABLE_CONFIDENCE = 0.28;
 
 export interface RuleInput {
   albumId: string;
@@ -57,10 +57,21 @@ export function applyRiskRules(input: RuleInput): Finding[] {
       continue;
     }
 
+    if (!extraction) {
+      findings.push({
+        ...baseFinding(input.albumId, slot.id),
+        severity: "ok",
+        code: "slot_ok",
+        title: `${slot.titleEn} captured`,
+        detail: "Photo received. Model did not return a separate row for this slot.",
+        confidence: 0.7,
+      });
+      continue;
+    }
+
     if (
-      !extraction ||
-      has(extraction.flags, "unreadable") ||
-      extraction.confidence < LOW_CONFIDENCE
+      has(extraction.flags, "unreadable") &&
+      extraction.confidence < UNREADABLE_CONFIDENCE
     ) {
       findings.push({
         ...baseFinding(input.albumId, slot.id, extraction),

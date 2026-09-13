@@ -60,28 +60,49 @@ function asFlags(value: unknown): VisualFlag[] {
   );
 }
 
+export function resolveSlotId(raw: unknown): SlotId | null {
+  const text = String(raw ?? "")
+    .toLowerCase()
+    .trim()
+    .replace(/[\s-]+/g, "_");
+  if (SLOT_ORDER.includes(text as SlotId)) return text as SlotId;
+  if (/label|sticker|sku|charger|traveler/.test(text)) return "label";
+  if (/guard|lid|cover|flap/.test(text)) return "guard";
+  if (/hopper|cable|plug|bin/.test(text)) return "hopper";
+  if (/first|light|charging|piece|board/.test(text)) return "first_piece";
+  if (/jig|laptop|desk|fixture|seat/.test(text)) return "jig";
+  return null;
+}
+
+export function normalizeConfidence(value: unknown): number {
+  if (value == null || value === "") return 0.8;
+  const n = Number(value);
+  if (!Number.isFinite(n)) return 0.8;
+  if (n > 1 && n <= 100) return Math.min(1, n / 100);
+  return Math.min(1, Math.max(0, n));
+}
+
 export function normalizeExtractions(payload: unknown): SlotExtraction[] {
   const record = payload as { slots?: unknown };
   if (!Array.isArray(record.slots)) {
     throw new Error("Model JSON missing slots[]");
   }
-  return record.slots
-    .map((item) => {
-      const row = item as Record<string, unknown>;
-      const slotId = row.slotId as SlotId;
-      if (!SLOT_ORDER.includes(slotId)) return null;
-      const confidence = Number(row.confidence);
-      return {
-        slotId,
-        extractedText: String(row.extractedText ?? ""),
-        flags: asFlags(row.flags),
-        visualSummary: String(row.visualSummary ?? ""),
-        confidence: Number.isFinite(confidence)
-          ? Math.min(1, Math.max(0, confidence))
-          : 0,
-      } satisfies SlotExtraction;
-    })
-    .filter((item): item is SlotExtraction => item !== null);
+  const seen = new Set<SlotId>();
+  const rows: SlotExtraction[] = [];
+  for (const item of record.slots) {
+    const row = item as Record<string, unknown>;
+    const slotId = resolveSlotId(row.slotId ?? row.id ?? row.name ?? row.slot);
+    if (!slotId || seen.has(slotId)) continue;
+    seen.add(slotId);
+    rows.push({
+      slotId,
+      extractedText: String(row.extractedText ?? row.text ?? ""),
+      flags: asFlags(row.flags),
+      visualSummary: String(row.visualSummary ?? row.summary ?? ""),
+      confidence: normalizeConfidence(row.confidence),
+    });
+  }
+  return rows;
 }
 
 export async function extractSlotsWithGemini(input: {
@@ -99,29 +120,38 @@ export async function extractSlotsWithGemini(input: {
   const client = new GoogleGenerativeAI(apiKey);
   const model = client.getGenerativeModel({
     model: modelName,
-    generationConfig: { temperature: 0.1 },
+    generationConfig: {
+      temperature: 0.1,
+      responseMimeType: "application/json",
+    },
   });
+
+  const slotGuide = album.slots
+    .map((slot) => `- ${slot.id} = ${slot.titleEn}`)
+    .join("\n");
 
   const parts: Array<{ text: string } | { inlineData: { mimeType: string; data: string } }> =
     [
       {
-        text: `You inspect a factory changeover. Compare each TODAY photo to its GOLDEN photo.
+        text: `You inspect a simple setup (desk or factory). Judge the TODAY photo.
 Work order SKU: ${input.workOrderSku}
 Line: ${album.lineName}
-Industry: ${album.industry}
 
-For the LABEL slot, transcribe every printed code you can read (OCR). Do not guess a SKU that is not visible.
+Use ONLY these slotId values:
+${slotGuide}
+
+For label, transcribe printed text (OCR). Do not invent a SKU.
 Only use these flags: ${ALLOWED_FLAGS.join(", ")}.
-Return ONLY JSON:
-{"slots":[{"slotId":"jig|label|guard|hopper|first_piece","extractedText":"","flags":[],"visualSummary":"one sentence","confidence":0.0}]}
+Return JSON: {"slots":[{"slotId":"jig","extractedText":"","flags":[],"visualSummary":"one sentence","confidence":0.8}]}
 
 Rules:
-- guard_open if any safety flap/cover/strap is clearly not in the safe/closed position.
-- label extractedText should include the printed SKU if readable.
-- first_piece_defect only if a defect is visible.
-- unreadable if blur, glare, or the subject is not in frame.
-- hopper_wrong_material only if the staged material/kit clearly differs.
-- hopper_messy for clutter without a wrong SKU.`,
+- slotId must be exactly jig, label, guard, hopper, or first_piece.
+- confidence is 0 to 1. If unsure, use 0.75. Never omit the slot.
+- Do NOT mark unreadable unless TODAY is actually blurry or empty. A clear phone photo of a laptop, cable, or lid is readable.
+- Ignore style differences if GOLDEN is a drawing and TODAY is a real photo. Judge TODAY.
+- guard_open only if the lid/cover is clearly open.
+- hopper_wrong_material only if the cable is clearly unplugged (desk) or the kit is wrong.
+- first_piece_defect only if a defect is obvious.`,
       },
     ];
 

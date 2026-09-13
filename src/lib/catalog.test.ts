@@ -3,7 +3,7 @@ import { ALBUMS, goldenPath, requireAlbum } from "./catalog";
 
 describe("catalog", () => {
   it("ships two industries with the same five-slot gate", () => {
-    expect(ALBUMS).toHaveLength(2);
+    expect(ALBUMS.length).toBeGreaterThanOrEqual(3);
     for (const album of ALBUMS) {
       expect(album.slots.map((slot) => slot.id)).toEqual([
         "jig",

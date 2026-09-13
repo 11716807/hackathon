@@ -86,7 +86,66 @@ const ELECTRONICS_SLOTS: SlotSpec[] = [
   },
 ];
 
+const DESK_SLOTS: SlotSpec[] = [
+  {
+    id: "jig",
+    titleEn: "Laptop on desk",
+    titleHi: "लैपटॉप डेस्क पर",
+    hintEn: "Laptop sitting flat on the desk, same place as the golden.",
+    hintHi: "लैपटॉप डेस्क पर सीधा हो, गोल्डन जैसी जगह।",
+    sopLine: "Laptop must be seated on the desk before charging starts.",
+  },
+  {
+    id: "label",
+    titleEn: "Charger sticker",
+    titleHi: "चार्जर स्टिकर",
+    hintEn: "Paper on the charger brick. Letters A-17 must be readable.",
+    hintHi: "चार्जर पर A-17 साफ़ दिखे।",
+    sopLine: "Charger sticker must match the work order SKU.",
+  },
+  {
+    id: "guard",
+    titleEn: "Lid closed",
+    titleHi: "ढक्कन बंद",
+    hintEn: "Laptop lid shut (like a machine cover / guard).",
+    hintHi: "लैपटॉप का ढक्कन बंद हो।",
+    sopLine: "Lid must be closed. Do not leave it open.",
+  },
+  {
+    id: "hopper",
+    titleEn: "Cable plugged in",
+    titleHi: "केबल लगी हो",
+    hintEn: "USB-C / MagSafe in the laptop. Cable not hanging loose.",
+    hintHi: "केबल लैपटॉप में लगी हो।",
+    sopLine: "Charge cable must be plugged into the laptop.",
+  },
+  {
+    id: "first_piece",
+    titleEn: "Charging light",
+    titleHi: "चार्जिंग लाइट",
+    hintEn: "LED or battery icon showing it is charging.",
+    hintHi: "चार्ज हो रहा हो, लाइट या आइकन दिखे।",
+    sopLine: "Charging indicator must be on before you walk away.",
+  },
+];
+
 export const ALBUMS: Album[] = [
+  {
+    id: "desk-charge",
+    industry: "desk",
+    plantName: "Home desk",
+    lineName: "Desk · Laptop charging",
+    sku: "A-17",
+    skuName: "My charger",
+    workOrder: "WO-CHARGE",
+    goldenDir: "/goldens/desk-charge",
+    hourlyOverheadInr: 800,
+    unitMarginInr: 0,
+    scrapUnitsIfEscape: 0,
+    recallReserveInr: 2500,
+    holdMinutes: 15,
+    slots: DESK_SLOTS,
+  },
   {
     id: "line3-a17",
     industry: "packaging",

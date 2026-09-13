@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
   isGeminiImageMime,
+  normalizeConfidence,
   normalizeExtractions,
   parseDataUrl,
+  resolveSlotId,
   toGeminiMime,
 } from "./gemini";
 
@@ -19,21 +21,29 @@ describe("gemini helpers", () => {
     expect(toGeminiMime("image/jpg")).toBe("image/jpeg");
   });
 
+  it("maps friendly names and percent confidence", () => {
+    expect(resolveSlotId("charger sticker")).toBe("label");
+    expect(resolveSlotId("lid closed")).toBe("guard");
+    expect(resolveSlotId("laptop on desk")).toBe("jig");
+    expect(normalizeConfidence(undefined)).toBe(0.8);
+    expect(normalizeConfidence(80)).toBe(0.8);
+  });
+
   it("drops unknown slots and clamps confidence", () => {
     const rows = normalizeExtractions({
       slots: [
         {
-          slotId: "label",
+          slotId: "Charger sticker",
           extractedText: "A-22",
           flags: ["label_present", "not_a_flag"],
           visualSummary: "x",
-          confidence: 4,
         },
         { slotId: "unknown", extractedText: "x" },
       ],
     });
     expect(rows).toHaveLength(1);
+    expect(rows[0].slotId).toBe("label");
     expect(rows[0].flags).toEqual(["label_present"]);
-    expect(rows[0].confidence).toBe(1);
+    expect(rows[0].confidence).toBe(0.8);
   });
 });

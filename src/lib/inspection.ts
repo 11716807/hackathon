@@ -52,15 +52,17 @@ export async function runInspection(
     toolTrace.push(
       usedTaught
         ? "Using taught real golden photos (not drawings)"
-        : "Using placeholder golden drawings converted to PNG",
+        : "Judging TODAY photos only (placeholder drawings are not sent to Gemini)",
     );
     const captures = await Promise.all(
       request.captures.map(async (capture) => ({
         ...capture,
-        goldenDataUrl: pickGolden(
-          taught.get(capture.slotId),
-          await loadGoldenDataUrl(album.id, capture.slotId),
-        ),
+        goldenDataUrl: usedTaught
+          ? pickGolden(
+              taught.get(capture.slotId),
+              await loadGoldenDataUrl(album.id, capture.slotId),
+            )
+          : undefined,
       })),
     );
     const { extractions: live, model: usedModel } =

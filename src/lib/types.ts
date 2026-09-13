@@ -42,7 +42,7 @@ export interface SlotSpec {
 
 export interface Album {
   id: string;
-  industry: "packaging" | "electronics";
+  industry: "packaging" | "electronics" | "desk";
   plantName: string;
   lineName: string;
   sku: string;

@@ -4,7 +4,7 @@ const copy = {
   en: {
     brand: "Golden Frame",
     tagline: "Do not start until it looks like last good run.",
-    plant: "Harborworks · Unit 4",
+    plant: "Golden Frame",
     role: "Role",
     operator: "Operator",
     supervisor: "Supervisor",
@@ -64,7 +64,7 @@ const copy = {
   hi: {
     brand: "गोल्डन फ्रेम",
     tagline: "पिछली अच्छी रन जैसी दिखे, तभी स्टार्ट।",
-    plant: "हारबरवर्क्स · यूनिट 4",
+    plant: "गोल्डन फ्रेम",
     role: "भूमिका",
     operator: "ऑपरेटर",
     supervisor: "सुपरवाइज़र",
