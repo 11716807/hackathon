@@ -1,0 +1,96 @@
+@import "tailwindcss";
+
+:root {
+  --gf-bg: #f4f0fb;
+  --gf-bg-2: #ebe4f8;
+  --gf-card: #ffffff;
+  --gf-card-2: #faf8ff;
+  --gf-line: #d4c8ec;
+  --gf-gold: #6d28d9;
+  --gf-gold-2: #4c1d95;
+  --gf-hold: #be185d;
+  --gf-clear: #047857;
+  --gf-warn: #c2410c;
+  --gf-text: #1e1233;
+  --gf-muted: #4b3f66;
+  --gf-ink: #ffffff;
+}
+
+@theme inline {
+  --color-gf-bg: var(--gf-bg);
+  --color-gf-bg-2: var(--gf-bg-2);
+  --color-gf-card: var(--gf-card);
+  --color-gf-card-2: var(--gf-card-2);
+  --color-gf-line: var(--gf-line);
+  --color-gf-gold: var(--gf-gold);
+  --color-gf-gold-2: var(--gf-gold-2);
+  --color-gf-hold: var(--gf-hold);
+  --color-gf-clear: var(--gf-clear);
+  --color-gf-warn: var(--gf-warn);
+  --color-gf-text: var(--gf-text);
+  --color-gf-muted: var(--gf-muted);
+  --color-gf-ink: var(--gf-ink);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+html,
+body {
+  min-height: 100%;
+  background: var(--gf-bg);
+  color: var(--gf-text);
+}
+
+body {
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  touch-action: manipulation;
+}
+
+.gf-app {
+  min-height: 100dvh;
+  background:
+    radial-gradient(900px 420px at 100% 0%, rgba(109, 40, 217, 0.12), transparent 50%),
+    radial-gradient(700px 380px at 0% 100%, rgba(190, 24, 93, 0.06), transparent 46%),
+    #f4f0fb;
+}
+
+.gf-frame {
+  background: #ffffff;
+  box-shadow:
+    0 1px 0 rgba(76, 29, 149, 0.06),
+    0 10px 28px rgba(76, 29, 149, 0.08);
+}
+
+.gf-cta {
+  background: #6d28d9;
+  color: #ffffff;
+  box-shadow: 0 8px 20px rgba(109, 40, 217, 0.28);
+}
+
+.gf-cta:disabled {
+  background: #c4b5fd;
+  color: #ffffff;
+  box-shadow: none;
+}
+
+.gf-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #4c1d95;
+}
+
+.gf-shutter {
+  box-shadow: 0 0 0 7px rgba(109, 40, 217, 0.22);
+}
