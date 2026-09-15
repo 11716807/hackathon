@@ -103,6 +103,10 @@ export function CheckScreen() {
       <p className="text-center text-sm font-semibold tracking-[0.16em] text-gf-gold uppercase">
         {t(locale, "captureTitle")}
       </p>
+      <p className="mt-1 text-center text-sm font-semibold text-gf-gold-2">
+        {album.lineName}
+        {album.sku ? ` · ${album.sku}` : ""}
+      </p>
       <p className="gf-whisper mx-auto mt-2 max-w-md text-center">
         {t(locale, "captureHint")}
       </p>

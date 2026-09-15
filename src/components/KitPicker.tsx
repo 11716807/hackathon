@@ -49,34 +49,47 @@ export function KitPicker() {
       </div>
 
       {open ? (
-        <div className="grid max-w-md gap-2 text-left">
-          <input
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            placeholder={t(locale, "lineName")}
-            className="rounded-2xl bg-white/80 px-4 py-3 text-sm outline-none"
-          />
-          <input
-            value={sku}
-            onChange={(event) => setSku(event.target.value)}
-            placeholder="SKU"
-            className="rounded-2xl bg-white/80 px-4 py-3 text-sm outline-none"
-          />
-          <label className="text-xs font-semibold text-gf-muted">
-            {t(locale, "copyFrom")}
+        <div className="grid max-w-md gap-3 text-left">
+          <label className="grid gap-1">
+            <span className="text-xs font-semibold tracking-[0.12em] text-gf-muted uppercase">
+              {t(locale, "lineName")}
+            </span>
+            <input
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              placeholder={t(locale, "lineName")}
+              className="rounded-2xl bg-white/80 px-4 py-3 text-sm outline-none"
+            />
           </label>
-          <select
-            value={templateId}
-            onChange={(event) => setTemplateId(event.target.value)}
-            className="rounded-2xl bg-white/80 px-4 py-3 text-sm outline-none"
-          >
-            <option value="">{t(locale, "copyBlank")}</option>
-            {ALBUMS.map((item) => (
-              <option key={item.id} value={item.id}>
-                {LABELS[item.id]?.[locale] ?? item.lineName}
-              </option>
-            ))}
-          </select>
+          <label className="grid gap-1">
+            <span className="text-xs font-semibold tracking-[0.12em] text-gf-muted uppercase">
+              {t(locale, "sku")}
+            </span>
+            <input
+              value={sku}
+              onChange={(event) => setSku(event.target.value)}
+              placeholder={t(locale, "skuPlaceholder")}
+              className="rounded-2xl bg-white/80 px-4 py-3 text-sm outline-none"
+            />
+            <span className="text-xs text-gf-muted">{t(locale, "skuHint")}</span>
+          </label>
+          <label className="grid gap-1">
+            <span className="text-xs font-semibold text-gf-muted">
+              {t(locale, "copyFrom")}
+            </span>
+            <select
+              value={templateId}
+              onChange={(event) => setTemplateId(event.target.value)}
+              className="rounded-2xl bg-white/80 px-4 py-3 text-sm outline-none"
+            >
+              <option value="">{t(locale, "copyBlank")}</option>
+              {ALBUMS.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {LABELS[item.id]?.[locale] ?? item.lineName}
+                </option>
+              ))}
+            </select>
+          </label>
           <button
             type="button"
             onClick={() => {
@@ -93,7 +106,6 @@ export function KitPicker() {
           >
             {t(locale, "createLine")}
           </button>
-          <p className="text-xs text-gf-muted">{t(locale, "newLineHint")}</p>
         </div>
       ) : null}
     </div>

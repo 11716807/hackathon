@@ -55,7 +55,7 @@ export async function runInspection(
     extractions = practiceExtractions(script, workOrderSku, capturedSlotIds);
     engine = "practice";
     toolTrace.push(`Practice script: ${script}`);
-    toolTrace.push("Skipped Gemini — practice path uses a fixed extraction");
+    toolTrace.push("Skipped live vision — practice path uses a fixed extraction");
   } else {
     const taught = new Map(
       (request.goldens ?? []).map((item) => [item.slotId, item.dataUrl]),
@@ -64,7 +64,7 @@ export async function runInspection(
     toolTrace.push(
       usedTaught
         ? "Using taught real golden photos (not drawings)"
-        : "Judging TODAY photos only (placeholder drawings are not sent to Gemini)",
+        : "Judging TODAY photos only (placeholder drawings are not sent)",
     );
     const captures = await Promise.all(
       request.captures.map(async (capture) => ({
@@ -90,7 +90,7 @@ export async function runInspection(
     extractions = live;
     engine = "live";
     model = usedModel;
-    toolTrace.push(`Gemini vision + OCR (${usedModel})`);
+    toolTrace.push("Vision + OCR");
   }
 
   toolTrace.push("Applied risk table (rules beat model prose)");
