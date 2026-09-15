@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { t } from "@/lib/i18n";
 import { compressImage } from "@/lib/image";
+import { EMPTY_FRAME } from "@/lib/catalog";
 import type { Locale, SlotSpec } from "@/lib/types";
 
 interface CameraSheetProps {
@@ -27,6 +28,7 @@ export function CameraSheet({
   const fileRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [ghost, setGhost] = useState(true);
 
   function stopStream() {
     streamRef.current?.getTracks().forEach((track) => track.stop());
@@ -99,25 +101,19 @@ export function CameraSheet({
   const hint = locale === "hi" ? slot.hintHi : slot.hintEn;
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-[#140f1c] px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))]">
-      <div className="mx-auto flex h-full w-full max-w-md flex-col">
-        <div className="mb-3 flex items-center justify-between">
+    <div className="fixed inset-0 z-50 flex flex-col bg-[#120a18] px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))]">
+      <div className="mx-auto flex h-full w-full max-w-3xl flex-col">
+        <div className="mb-4 flex items-start justify-between gap-4 text-white">
           <div>
-            <p className="font-mono text-xs font-bold tracking-[0.2em] text-[#d8c4ff] uppercase">
-              {title}
-            </p>
-            <p className="mt-1 text-sm font-medium text-white">{hint}</p>
+            <p className="gf-stamp text-4xl">{title}</p>
+            <p className="mt-2 text-sm text-white/75">{hint}</p>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-full border border-white/15 px-3 py-1.5 text-sm text-white"
-          >
+          <button type="button" onClick={onClose} className="pt-2 text-sm font-semibold">
             {t(locale, "cancel")}
           </button>
         </div>
 
-        <div className="relative min-h-0 flex-1 overflow-hidden rounded-3xl border border-white/20 bg-black">
+        <div className="relative min-h-0 flex-1 overflow-hidden rounded-[1.6rem] bg-black">
           <video
             ref={videoRef}
             playsInline
@@ -125,23 +121,29 @@ export function CameraSheet({
             className="h-full w-full object-cover"
             aria-label={title}
           />
-          <div className="pointer-events-none absolute inset-4 rounded-2xl border border-gf-gold/50" />
-          <img
-            src={goldenSrc}
-            alt=""
-            className="pointer-events-none absolute right-4 bottom-4 h-20 w-20 rounded-xl border border-white/30 object-cover opacity-70"
-          />
+          {ghost && goldenSrc && goldenSrc !== EMPTY_FRAME ? (
+            <img
+              src={goldenSrc}
+              alt=""
+              className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-[0.34]"
+            />
+          ) : null}
+          <button
+            type="button"
+            onClick={() => setGhost((value) => !value)}
+            className="absolute top-3 right-3 rounded-full bg-black/50 px-3 py-1 text-xs font-semibold text-white"
+          >
+            {ghost ? "Ghost on" : "Ghost off"}
+          </button>
         </div>
 
-        {error ? (
-          <p className="mt-3 text-sm text-gf-warn">{error}</p>
-        ) : null}
+        {error ? <p className="mt-3 text-sm text-gf-warn">{error}</p> : null}
 
-        <div className="mt-4 flex items-center justify-center gap-6">
+        <div className="mt-5 flex items-center justify-between gap-4 px-2">
           <button
             type="button"
             onClick={() => fileRef.current?.click()}
-            className="text-sm font-semibold text-white underline-offset-4 hover:underline"
+            className="text-sm font-semibold text-white"
           >
             {t(locale, "uploadInstead")}
           </button>
@@ -149,12 +151,10 @@ export function CameraSheet({
             type="button"
             onClick={snap}
             disabled={busy || Boolean(error)}
-            className="gf-shutter h-20 w-20 rounded-full border-4 border-gf-gold bg-white disabled:opacity-40"
+            className="gf-shutter h-[4.6rem] w-[4.6rem] rounded-full border-[5px] border-white bg-white disabled:opacity-40"
             aria-label={t(locale, "snap")}
           />
-          <span className="w-16 font-mono text-xs font-semibold text-white">
-            {t(locale, "snap")}
-          </span>
+          <span className="w-16" />
         </div>
         <input
           ref={fileRef}

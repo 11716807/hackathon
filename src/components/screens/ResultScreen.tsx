@@ -4,55 +4,16 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { DecisionCard } from "@/components/DecisionCard";
+import { Polaroid } from "@/components/Polaroid";
 import { t } from "@/lib/i18n";
 import { formatInr } from "@/lib/impact";
 import { useSession } from "@/lib/session";
-import type { Finding, Severity } from "@/lib/types";
-
-function tone(severity: Severity): string {
-  if (severity === "must_fix" || severity === "retake") return "text-gf-hold";
-  if (severity === "warn") return "text-gf-warn";
-  return "text-gf-clear";
-}
-
-function FindingList({
-  title,
-  items,
-}: {
-  title: string;
-  items: Finding[];
-}) {
-  if (items.length === 0) return null;
-  return (
-    <section>
-      <p className="gf-label mb-2">
-        {title}
-      </p>
-      <div className="grid gap-2">
-        {items.map((item) => (
-          <article
-            key={`${item.slotId}-${item.code}`}
-            className="rounded-2xl border border-gf-line bg-gf-card px-4 py-3"
-          >
-            <p className={`text-sm font-semibold ${tone(item.severity)}`}>
-              {item.title}
-            </p>
-            <p className="mt-1 text-sm leading-6 text-gf-muted">{item.detail}</p>
-            <p className="mt-2 font-mono text-xs font-medium text-gf-gold">
-              SOP · {item.sopCite}
-            </p>
-          </article>
-        ))}
-      </div>
-    </section>
-  );
-}
+import type { Finding } from "@/lib/types";
 
 export function ResultScreen() {
   const router = useRouter();
   const {
     locale,
-    role,
     album,
     result,
     captures,
@@ -63,12 +24,13 @@ export function ResultScreen() {
   } = useSession();
   const [reason, setReason] = useState("");
   const [traceOpen, setTraceOpen] = useState(false);
+  const [flipped, setFlipped] = useState<string | null>(null);
 
   if (!result) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-3 text-center">
-        <p className="text-gf-muted">No gate yet.</p>
-        <Link href="/check" className="font-semibold text-gf-gold">
+        <p className="gf-whisper">No gate yet.</p>
+        <Link href="/check" className="font-semibold text-gf-gold-2">
           {t(locale, "startCheck")}
         </Link>
       </div>
@@ -79,8 +41,9 @@ export function ResultScreen() {
     (item) => item.severity === "must_fix" || item.severity === "retake",
   );
   const warns = result.findings.filter((item) => item.severity === "warn");
-  const ok = result.findings.filter((item) => item.severity === "ok");
+  const okCount = result.findings.filter((item) => item.severity === "ok").length;
   const compareSlots = album.slots.filter((slot) => captures[slot.id]);
+  const hold = result.decision === "HOLD";
 
   function persist(decision: "HOLD" | "CLEAR", overrideReason?: string) {
     logGate({
@@ -88,10 +51,8 @@ export function ResultScreen() {
       sku: album.sku,
       lineName: album.lineName,
       decision,
-      actor: role,
-      summary: overrideReason
-        ? `Override: ${overrideReason}`
-        : result!.summary,
+      actor: overrideReason ? "supervisor" : "operator",
+      summary: overrideReason ? `Override: ${overrideReason}` : result!.summary,
       overrideReason,
       findingCodes: result!.findings.map((item) => item.code),
     });
@@ -99,115 +60,97 @@ export function ResultScreen() {
     router.push("/history");
   }
 
+  function lines(items: Finding[]) {
+    return items.map((item) => (
+      <p key={`${item.slotId}-${item.code}`} className="gf-whisper">
+        {item.title}. {item.detail}
+      </p>
+    ));
+  }
+
   return (
-    <div className="flex flex-1 flex-col gap-5">
+    <div className="flex flex-1 flex-col items-center">
       <DecisionCard
         decision={result.decision}
         summary={result.summary}
         locale={locale}
       />
 
-      <div className="grid grid-cols-2 gap-2">
-        <div className="rounded-2xl border border-gf-line bg-gf-card px-3 py-3">
-          <p className="gf-label">
-            {t(locale, "holdCost")}
+      <p className="mt-6 text-center text-sm font-semibold text-gf-gold-2">
+        {t(locale, "holdCost")} {formatInr(result.impact.holdCostInr)} ·{" "}
+        {result.impact.holdMinutes} {t(locale, "minutes")}
+        <span className="mx-2 text-gf-muted/40">/</span>
+        {t(locale, "escapeCost")} {formatInr(result.impact.escapeCostInr)}
+      </p>
+
+      <div className="mt-10 flex w-full items-end justify-center overflow-x-auto px-2 pb-4">
+        {compareSlots.map((slot, index) => {
+          const title = locale === "hi" ? slot.titleHi : slot.titleEn;
+          const showToday = flipped === slot.id;
+          return (
+            <button
+              key={slot.id}
+              type="button"
+              onClick={() => setFlipped(showToday ? null : slot.id)}
+              className="w-[150px] shrink-0 md:w-[180px]"
+              style={{
+                marginLeft: index === 0 ? 0 : -36,
+                zIndex: showToday ? 20 : index,
+                transform: `rotate(${(index - 2) * 5}deg) translateY(${showToday ? -18 : 8}px)`,
+              }}
+            >
+              <Polaroid
+                src={showToday ? captures[slot.id]!.dataUrl : goldenSrc(slot.id)}
+                caption={`${title} · ${showToday ? "today" : "golden"}`}
+                stamp={
+                  must.some((item) => item.slotId === slot.id)
+                    ? "HOLD"
+                    : undefined
+                }
+                stampTone="hold"
+              />
+            </button>
+          );
+        })}
+      </div>
+      <p className="text-center text-xs font-semibold text-gf-muted">
+        Tap a print to flip golden → today
+      </p>
+
+      <div className="mt-8 grid max-w-lg gap-3 text-center">
+        {lines(must)}
+        {lines(warns)}
+        {okCount > 0 && must.length === 0 ? (
+          <p className="gf-whisper">
+            {okCount} {t(locale, "matched").toLowerCase()}.
           </p>
-          <p className="mt-1 text-lg font-semibold text-gf-text">
-            {formatInr(result.impact.holdCostInr)}
-          </p>
-          <p className="text-sm font-medium text-gf-muted">
-            {result.impact.holdMinutes} {t(locale, "minutes")}
-          </p>
-        </div>
-        <div className="rounded-2xl border border-gf-line bg-gf-card px-3 py-3">
-          <p className="gf-label">
-            {t(locale, "escapeCost")}
-          </p>
-          <p className="mt-1 text-lg font-semibold text-gf-text">
-            {formatInr(result.impact.escapeCostInr)}
-          </p>
-          <p className="text-sm font-medium text-gf-muted">recall + scrap</p>
-        </div>
+        ) : null}
       </div>
 
-      <section>
-        <p className="gf-label mb-2">
-          Golden · today
-        </p>
-        <div className="flex gap-3 overflow-x-auto pb-1">
-          {compareSlots.map((slot) => (
-            <div key={slot.id} className="w-36 shrink-0">
-              <div className="grid grid-cols-2 overflow-hidden rounded-xl border border-gf-line">
-                <img
-                  src={goldenSrc(slot.id)}
-                  alt=""
-                  className="aspect-square object-cover"
-                />
-                <img
-                  src={captures[slot.id]?.dataUrl}
-                  alt=""
-                  className="aspect-square object-cover"
-                />
-              </div>
-              <p className="mt-1 text-center text-xs font-medium text-gf-muted">
-                {locale === "hi" ? slot.titleHi : slot.titleEn}
-              </p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <FindingList title={t(locale, "mustFix")} items={must} />
-      <FindingList title={t(locale, "warnings")} items={warns} />
-      <FindingList title={t(locale, "matched")} items={ok} />
-
-      <button
-        type="button"
-        onClick={() => setTraceOpen((value) => !value)}
-        className="text-left text-sm font-semibold text-gf-gold"
-      >
-        {t(locale, "toolTrace")}
-      </button>
-      {traceOpen ? (
-        <ol className="rounded-2xl border border-gf-line bg-white px-4 py-3 font-mono text-sm leading-7 text-gf-text">
-          {result.toolTrace.map((step, index) => (
-            <li key={step}>
-              {index + 1}. {step}
-            </li>
-          ))}
-          <li>
-            Engine {result.engine}
-            {result.model ? ` · ${result.model}` : ""}
-          </li>
-        </ol>
-      ) : null}
-
-      {result.decision === "HOLD" ? (
-        <>
-          <Link
-            href="/check"
-            className="gf-cta flex h-14 items-center justify-center rounded-2xl text-base font-semibold"
-          >
-            {t(locale, "recheck")}
-          </Link>
-          <button
-            type="button"
-            onClick={() => persist("HOLD")}
-            className="h-12 rounded-2xl border border-gf-hold/40 text-sm text-gf-hold"
-          >
-            {t(locale, "approveHold")}
-          </button>
-          {role === "supervisor" ? (
-            <div className="rounded-2xl border border-gf-line bg-gf-card p-4">
-              <label className="text-sm font-semibold text-gf-text" htmlFor="override">
-                {t(locale, "overrideReason")}
-              </label>
+      <div className="mt-10 flex w-full max-w-md flex-col items-center gap-3">
+        {hold ? (
+          <>
+            <Link
+              href="/check"
+              className="gf-cta flex h-14 w-full items-center justify-center rounded-full text-base font-semibold"
+            >
+              {t(locale, "recheck")}
+            </Link>
+            <button
+              type="button"
+              onClick={() => persist("HOLD")}
+              className="text-sm font-semibold text-gf-hold"
+            >
+              {t(locale, "approveHold")}
+            </button>
+            <div className="w-full pt-2">
               <textarea
                 id="override"
                 value={reason}
                 onChange={(event) => setReason(event.target.value)}
                 rows={2}
-                className="mt-2 w-full rounded-xl border border-gf-line bg-gf-bg px-3 py-2 text-sm outline-none"
+                placeholder={t(locale, "overrideReason")}
+                className="w-full resize-none bg-transparent text-center text-sm outline-none placeholder:text-gf-muted"
               />
               <button
                 type="button"
@@ -218,33 +161,44 @@ export function ResultScreen() {
                   }
                   persist("CLEAR", reason.trim());
                 }}
-                className="mt-3 w-full text-sm font-semibold text-gf-gold"
+                className="mt-2 w-full text-sm font-semibold text-gf-gold-2"
               >
                 {t(locale, "override")}
               </button>
             </div>
-          ) : null}
-        </>
-      ) : (
+          </>
+        ) : (
+          <button
+            type="button"
+            onClick={() => persist("CLEAR")}
+            className="flex h-14 w-full items-center justify-center rounded-full bg-gf-clear text-base font-semibold text-white"
+          >
+            {t(locale, "approveClear")}
+          </button>
+        )}
         <button
           type="button"
-          onClick={() => persist("CLEAR")}
-          className="flex h-14 items-center justify-center rounded-2xl bg-gf-clear text-base font-semibold text-gf-ink"
+          onClick={() => setTraceOpen((value) => !value)}
+          className="text-sm font-semibold text-gf-muted"
         >
-          {t(locale, "approveClear")}
+          {t(locale, "toolTrace")}
         </button>
-      )}
-
-      <button
-        type="button"
-        onClick={() => {
-          resetCaptures();
-          router.push("/");
-        }}
-        className="text-center text-sm font-semibold text-gf-muted"
-      >
-        {t(locale, "home")}
-      </button>
+        {traceOpen ? (
+          <p className="text-center text-sm leading-7 text-gf-muted">
+            {result.toolTrace.join(" → ")}
+          </p>
+        ) : null}
+        <button
+          type="button"
+          onClick={() => {
+            resetCaptures();
+            router.push("/");
+          }}
+          className="text-sm font-semibold text-gf-muted"
+        >
+          {t(locale, "home")}
+        </button>
+      </div>
     </div>
   );
 }

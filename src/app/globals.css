@@ -1,19 +1,20 @@
 @import "tailwindcss";
 
 :root {
-  --gf-bg: #f4f0fb;
-  --gf-bg-2: #ebe4f8;
-  --gf-card: #ffffff;
-  --gf-card-2: #faf8ff;
-  --gf-line: #d4c8ec;
-  --gf-gold: #6d28d9;
-  --gf-gold-2: #4c1d95;
-  --gf-hold: #be185d;
+  --gf-bg: #ece6f6;
+  --gf-bg-2: #e4dcf2;
+  --gf-card: #fffdf8;
+  --gf-card-2: #f7f3ec;
+  --gf-line: transparent;
+  --gf-gold: #5b21b6;
+  --gf-gold-2: #3b0764;
+  --gf-hold: #c81e5d;
   --gf-clear: #047857;
   --gf-warn: #c2410c;
-  --gf-text: #1e1233;
-  --gf-muted: #4b3f66;
+  --gf-text: #160b24;
+  --gf-muted: #3a2c52;
   --gf-ink: #ffffff;
+  --gf-paper: #fffdf8;
 }
 
 @theme inline {
@@ -43,8 +44,8 @@ body {
 
 body {
   font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
-  font-size: 16px;
-  line-height: 1.5;
+  font-size: 17px;
+  line-height: 1.45;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -59,22 +60,46 @@ textarea {
 .gf-app {
   min-height: 100dvh;
   background:
-    radial-gradient(900px 420px at 100% 0%, rgba(109, 40, 217, 0.12), transparent 50%),
-    radial-gradient(700px 380px at 0% 100%, rgba(190, 24, 93, 0.06), transparent 46%),
-    #f4f0fb;
+    radial-gradient(ellipse 80% 50% at 90% -10%, rgba(124, 58, 237, 0.22), transparent 50%),
+    radial-gradient(ellipse 60% 40% at 0% 100%, rgba(200, 30, 93, 0.1), transparent 46%),
+    linear-gradient(180deg, #f3eefb 0%, #e8e0f4 48%, #efe6d8 100%);
 }
 
-.gf-frame {
-  background: #ffffff;
+.gf-app-phone .gf-canvas {
+  padding-bottom: 1.25rem;
+}
+
+.gf-print {
+  background: var(--gf-paper);
+  padding: 0.55rem 0.55rem 1.85rem;
   box-shadow:
-    0 1px 0 rgba(76, 29, 149, 0.06),
-    0 10px 28px rgba(76, 29, 149, 0.08);
+    0 1px 0 rgba(22, 11, 36, 0.06),
+    0 18px 40px rgba(22, 11, 36, 0.16);
+}
+
+.gf-print img,
+.gf-print video {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  background: #d7d0e4;
+}
+
+.gf-print figcaption,
+.gf-print .gf-print-cap {
+  margin-top: 0.55rem;
+  text-align: center;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: #3a2c52;
 }
 
 .gf-cta {
-  background: #6d28d9;
+  background: #5b21b6;
   color: #ffffff;
-  box-shadow: 0 8px 20px rgba(109, 40, 217, 0.28);
+  box-shadow: 0 14px 28px rgba(91, 33, 182, 0.28);
 }
 
 .gf-cta:disabled {
@@ -83,14 +108,197 @@ textarea {
   box-shadow: none;
 }
 
-.gf-label {
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: #4c1d95;
+.gf-pulse {
+  animation: gf-pulse 1.8s ease-in-out infinite;
 }
 
-.gf-shutter {
-  box-shadow: 0 0 0 7px rgba(109, 40, 217, 0.22);
+@keyframes gf-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 10px 24px rgba(91, 33, 182, 0.2);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 14px 28px rgba(91, 33, 182, 0.35);
+  }
+}
+
+.gf-dock {
+  position: relative;
+  z-index: 30;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+  padding: 0.4rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(22, 11, 36, 0.88);
+  color: #f6f1ff;
+  backdrop-filter: blur(16px);
+}
+
+.gf-stamp {
+  font-family: Palatino, "Palatino Linotype", "Iowan Old Style", Georgia, serif;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 0.88;
+}
+
+.gf-whisper {
+  color: var(--gf-muted);
+  font-size: 1.02rem;
+  line-height: 1.55;
+}
+
+.gf-chip {
+  border: 0;
+  background: transparent;
+  color: var(--gf-muted);
+  font-size: 0.92rem;
+  font-weight: 600;
+  padding: 0;
+}
+
+.gf-chip[data-on="true"] {
+  color: var(--gf-gold-2);
+}
+
+.gf-notch {
+  display: none;
+}
+
+.gf-device,
+.gf-canvas {
+  overflow-x: hidden;
+}
+
+.gf-fan {
+  height: 280px;
+  width: 240px;
+}
+
+.gf-home {
+  flex-direction: column;
+  text-align: center;
+}
+
+.gf-home-shift,
+.gf-home-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.gf-home-copy {
+  margin-inline: auto;
+}
+
+@media (max-width: 959px) {
+  .gf-app-auto .gf-device,
+  .gf-app-phone .gf-device {
+    max-width: 28rem;
+    margin-inline: auto;
+  }
+}
+
+@media (min-width: 960px) {
+  .gf-app-auto .gf-dock,
+  .gf-app-laptop .gf-dock {
+    display: none;
+  }
+
+  .gf-app-auto .gf-device,
+  .gf-app-laptop .gf-device {
+    max-width: 72rem;
+    margin-inline: auto;
+  }
+
+  .gf-app-auto .gf-fan,
+  .gf-app-laptop .gf-fan {
+    height: 520px;
+    width: 420px;
+  }
+
+  .gf-app-auto .gf-home,
+  .gf-app-laptop .gf-home {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    text-align: left;
+  }
+
+  .gf-app-auto .gf-home-fan,
+  .gf-app-laptop .gf-home-fan {
+    order: 1;
+  }
+
+  .gf-app-auto .gf-home-shift,
+  .gf-app-auto .gf-home-actions,
+  .gf-app-laptop .gf-home-shift,
+  .gf-app-laptop .gf-home-actions {
+    align-items: flex-start;
+  }
+
+  .gf-app-auto .gf-home-copy,
+  .gf-app-laptop .gf-home-copy {
+    margin-inline: 0;
+  }
+}
+
+.gf-app-phone .gf-shell {
+  min-height: 100dvh;
+}
+
+@media (min-width: 760px) {
+  .gf-app-phone .gf-shell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+  }
+
+  .gf-app-phone .gf-device {
+    width: 100%;
+    max-width: 400px;
+    overflow: hidden;
+    border-radius: 2.4rem;
+    background: #ece6f6;
+    box-shadow:
+      0 0 0 8px #1c1228,
+      0 40px 80px rgba(22, 11, 36, 0.28);
+  }
+
+  .gf-app-phone .gf-notch {
+    display: block;
+    width: 6rem;
+    height: 0.35rem;
+    margin: 0.75rem auto 0;
+    border-radius: 999px;
+    background: #1c1228;
+  }
+
+  .gf-app-phone .gf-canvas {
+    min-height: 720px;
+  }
+
+  .gf-app-phone .gf-home {
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 1.1rem;
+    text-align: center;
+  }
+
+  .gf-app-phone .gf-fan {
+    height: 190px;
+    width: 168px;
+  }
+
+  .gf-app-phone .gf-home-copy .gf-stamp {
+    font-size: 2.55rem;
+  }
+
+  .gf-app-phone .gf-dock {
+    display: grid;
+  }
 }

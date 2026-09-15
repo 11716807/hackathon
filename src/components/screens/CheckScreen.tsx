@@ -1,9 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { CameraSheet } from "@/components/CameraSheet";
+import { CaptureDock } from "@/components/CaptureDock";
+import { SlotStage } from "@/components/SlotStage";
 import { t } from "@/lib/i18n";
 import { useSession } from "@/lib/session";
 import type { InspectionResult, SlotSpec } from "@/lib/types";
@@ -43,6 +44,17 @@ export function CheckScreen() {
     try {
       const body = {
         albumId: album.id,
+        album: {
+          id: album.id,
+          lineName: album.lineName,
+          sku: album.sku,
+          slots: album.slots,
+          holdMinutes: album.holdMinutes,
+          hourlyOverheadInr: album.hourlyOverheadInr,
+          unitMarginInr: album.unitMarginInr,
+          scrapUnitsIfEscape: album.scrapUnitsIfEscape,
+          recallReserveInr: album.recallReserveInr,
+        },
         workOrderSku: album.sku,
         mode,
         practiceScript:
@@ -88,68 +100,40 @@ export function CheckScreen() {
 
   return (
     <div className="flex flex-1 flex-col">
-      <div className="mb-4 flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-semibold">{t(locale, "captureTitle")}</h1>
-          <p className="mt-1 text-sm font-medium text-gf-muted">{t(locale, "captureHint")}</p>
-        </div>
-        <Link href="/" className="text-sm font-semibold text-gf-gold">
-          {t(locale, "home")}
-        </Link>
+      <p className="text-center text-sm font-semibold tracking-[0.16em] text-gf-gold uppercase">
+        {t(locale, "captureTitle")}
+      </p>
+      <p className="gf-whisper mx-auto mt-2 max-w-md text-center">
+        {t(locale, "captureHint")}
+      </p>
+
+      <div className="mt-6 flex-1">
+        <SlotStage
+          slots={slots}
+          srcFor={(slot) => captures[slot.id]?.dataUrl ?? goldenSrc(slot.id)}
+          isShot={(slot) => Boolean(captures[slot.id])}
+          onPick={setActive}
+          locale={locale}
+        />
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        {slots.map((slot) => {
-          const shot = captures[slot.id];
-          const title = locale === "hi" ? slot.titleHi : slot.titleEn;
-          return (
-            <button
-              key={slot.id}
-              type="button"
-              onClick={() => {
-                setActive(slot);
-              }}
-              className="overflow-hidden rounded-2xl border border-gf-line bg-gf-card text-left"
-            >
-              <div className="relative aspect-[4/3] bg-gf-card-2">
-                <img
-                  src={shot?.dataUrl ?? goldenSrc(slot.id)}
-                  alt=""
-                  className={`h-full w-full object-cover ${shot ? "" : "opacity-40"}`}
-                />
-                {!shot ? (
-                  <span className="absolute inset-x-2 bottom-2 rounded-lg bg-[#1e1233]/80 px-2 py-1 text-center font-mono text-xs font-semibold text-white">
-                    {t(locale, "snap")}
-                  </span>
-                ) : (
-                  <span className="absolute top-2 right-2 rounded-full bg-gf-clear px-2 py-0.5 font-mono text-xs font-bold text-white">
-                    OK
-                  </span>
-                )}
-              </div>
-              <div className="px-3 py-2">
-                <p className="text-sm font-semibold text-gf-text">{title}</p>
-                <p className="text-xs font-medium text-gf-muted">
-                  {shot ? t(locale, "retake") : "Golden ghost"}
-                </p>
-              </div>
-            </button>
-          );
-        })}
-      </div>
-
-      {!ready ? (
-        <p className="mt-4 text-sm font-semibold text-gf-warn">{t(locale, "needAll")}</p>
+      {ready ? (
+        <button
+          type="button"
+          onClick={checkSetup}
+          disabled={checking}
+          className="gf-cta mx-auto mt-8 flex h-14 min-w-[220px] items-center justify-center rounded-full px-8 text-base font-semibold"
+        >
+          {checking ? "…" : t(locale, "checkSetup")}
+        </button>
       ) : null}
 
-      <button
-        type="button"
-        onClick={checkSetup}
-        disabled={!ready || checking}
-        className="gf-cta mt-auto flex h-14 items-center justify-center rounded-2xl text-base font-semibold disabled:opacity-40"
-      >
-        {checking ? "…" : t(locale, "checkSetup")}
-      </button>
+      <CaptureDock
+        onSnap={() => {
+          const next = slots.find((slot) => !captures[slot.id]) ?? slots[0];
+          if (next) setActive(next);
+        }}
+      />
 
       {active ? (
         <CameraSheet

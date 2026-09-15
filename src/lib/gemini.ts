@@ -14,6 +14,7 @@ const ALLOWED_FLAGS: VisualFlag[] = [
   "hopper_ok",
   "hopper_messy",
   "unreadable",
+  "mismatch",
 ];
 
 const GEMINI_IMAGE_MIMES = new Set([
@@ -60,18 +61,38 @@ function asFlags(value: unknown): VisualFlag[] {
   );
 }
 
-export function resolveSlotId(raw: unknown): SlotId | null {
+export function resolveSlotId(
+  raw: unknown,
+  allowed: string[] = SLOT_ORDER,
+): SlotId | null {
   const text = String(raw ?? "")
     .toLowerCase()
     .trim()
     .replace(/[\s-]+/g, "_");
-  if (SLOT_ORDER.includes(text as SlotId)) return text as SlotId;
-  if (/label|sticker|sku|charger|traveler/.test(text)) return "label";
-  if (/guard|lid|cover|flap/.test(text)) return "guard";
-  if (/hopper|cable|plug|bin/.test(text)) return "hopper";
-  if (/first|light|charging|piece|board/.test(text)) return "first_piece";
-  if (/jig|laptop|desk|fixture|seat/.test(text)) return "jig";
-  return null;
+  if (allowed.includes(text)) return text;
+  const named = allowed.find(
+    (id) => text === id.toLowerCase() || text.includes(id.toLowerCase()),
+  );
+  if (named) return named;
+  if (allowed.includes("label") && /label|sticker|sku|charger|traveler/.test(text)) {
+    return "label";
+  }
+  if (allowed.includes("guard") && /guard|lid|cover|flap/.test(text)) {
+    return "guard";
+  }
+  if (allowed.includes("hopper") && /hopper|cable|plug|bin/.test(text)) {
+    return "hopper";
+  }
+  if (
+    allowed.includes("first_piece") &&
+    /first|light|charging|piece|board/.test(text)
+  ) {
+    return "first_piece";
+  }
+  if (allowed.includes("jig") && /jig|laptop|desk|fixture|seat/.test(text)) {
+    return "jig";
+  }
+  return allowed.length === 1 ? allowed[0] : null;
 }
 
 export function normalizeConfidence(value: unknown): number {
@@ -82,7 +103,10 @@ export function normalizeConfidence(value: unknown): number {
   return Math.min(1, Math.max(0, n));
 }
 
-export function normalizeExtractions(payload: unknown): SlotExtraction[] {
+export function normalizeExtractions(
+  payload: unknown,
+  allowed: string[] = SLOT_ORDER,
+): SlotExtraction[] {
   const record = payload as { slots?: unknown };
   if (!Array.isArray(record.slots)) {
     throw new Error("Model JSON missing slots[]");
@@ -91,7 +115,10 @@ export function normalizeExtractions(payload: unknown): SlotExtraction[] {
   const rows: SlotExtraction[] = [];
   for (const item of record.slots) {
     const row = item as Record<string, unknown>;
-    const slotId = resolveSlotId(row.slotId ?? row.id ?? row.name ?? row.slot);
+    const slotId = resolveSlotId(
+      row.slotId ?? row.id ?? row.name ?? row.slot,
+      allowed,
+    );
     if (!slotId || seen.has(slotId)) continue;
     seen.add(slotId);
     rows.push({
@@ -108,6 +135,8 @@ export function normalizeExtractions(payload: unknown): SlotExtraction[] {
 export async function extractSlotsWithGemini(input: {
   albumId: string;
   workOrderSku: string;
+  lineName?: string;
+  slots?: { id: string; titleEn: string }[];
   captures: { slotId: SlotId; dataUrl: string; goldenDataUrl?: string }[];
 }): Promise<{ extractions: SlotExtraction[]; model: string }> {
   const apiKey = process.env.GEMINI_API_KEY;
@@ -115,7 +144,14 @@ export async function extractSlotsWithGemini(input: {
     throw new Error("GEMINI_API_KEY is not set");
   }
 
-  const album = requireAlbum(input.albumId);
+  let lineName = input.lineName ?? input.albumId;
+  let slots = input.slots;
+  if (!slots) {
+    const album = requireAlbum(input.albumId);
+    lineName = album.lineName;
+    slots = album.slots.map((slot) => ({ id: slot.id, titleEn: slot.titleEn }));
+  }
+  const allowed = slots.map((slot) => slot.id);
   const modelName = process.env.GEMINI_MODEL || "gemini-2.5-flash";
   const client = new GoogleGenerativeAI(apiKey);
   const model = client.getGenerativeModel({
@@ -126,31 +162,32 @@ export async function extractSlotsWithGemini(input: {
     },
   });
 
-  const slotGuide = album.slots
+  const slotGuide = slots
     .map((slot) => `- ${slot.id} = ${slot.titleEn}`)
     .join("\n");
 
   const parts: Array<{ text: string } | { inlineData: { mimeType: string; data: string } }> =
     [
       {
-        text: `You inspect a simple setup (desk or factory). Judge the TODAY photo.
+        text: `You inspect a factory / desk setup. Judge the TODAY photo against GOLDEN if present.
 Work order SKU: ${input.workOrderSku}
-Line: ${album.lineName}
+Line: ${lineName}
 
 Use ONLY these slotId values:
 ${slotGuide}
 
-For label, transcribe printed text (OCR). Do not invent a SKU.
+For printed labels, transcribe text (OCR). Do not invent a SKU.
 Only use these flags: ${ALLOWED_FLAGS.join(", ")}.
-Return JSON: {"slots":[{"slotId":"jig","extractedText":"","flags":[],"visualSummary":"one sentence","confidence":0.8}]}
+Return JSON: {"slots":[{"slotId":"${allowed[0] ?? "jig"}","extractedText":"","flags":[],"visualSummary":"one sentence","confidence":0.8}]}
 
 Rules:
-- slotId must be exactly jig, label, guard, hopper, or first_piece.
-- confidence is 0 to 1. If unsure, use 0.75. Never omit the slot.
-- Do NOT mark unreadable unless TODAY is actually blurry or empty. A clear phone photo of a laptop, cable, or lid is readable.
+- slotId must be one of: ${allowed.join(", ")}.
+- confidence is 0 to 1. If unsure, use 0.75. Never omit a captured slot.
+- Do NOT mark unreadable unless TODAY is actually blurry or empty.
 - Ignore style differences if GOLDEN is a drawing and TODAY is a real photo. Judge TODAY.
-- guard_open only if the lid/cover is clearly open.
-- hopper_wrong_material only if the cable is clearly unplugged (desk) or the kit is wrong.
+- If TODAY clearly does not match GOLDEN, add flag mismatch.
+- guard_open only if a lid/cover/guard is clearly open.
+- hopper_wrong_material only if the staged kit/cable is clearly wrong.
 - first_piece_defect only if a defect is obvious.`,
       },
     ];
@@ -189,7 +226,7 @@ Rules:
   const result = await model.generateContent(parts);
   const text = result.response.text();
   return {
-    extractions: normalizeExtractions(extractJson(text)),
+    extractions: normalizeExtractions(extractJson(text), allowed),
     model: modelName,
   };
 }

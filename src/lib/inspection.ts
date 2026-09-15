@@ -1,4 +1,4 @@
-import { requireAlbum } from "./catalog";
+import { getAlbum, requireAlbum } from "./catalog";
 import { decideGate } from "./gate";
 import { extractSlotsWithGemini } from "./gemini";
 import { loadGoldenDataUrl } from "./goldens";
@@ -7,6 +7,7 @@ import { estimateImpact } from "./impact";
 import { practiceExtractions, type PracticeScript } from "./practice";
 import { applyRiskRules } from "./rules";
 import type {
+  Album,
   EngineMode,
   InspectionResult,
   SlotId,
@@ -15,6 +16,7 @@ import type {
 
 export interface InspectRequest {
   albumId: string;
+  album?: Pick<Album, "id" | "lineName" | "sku" | "slots" | "holdMinutes" | "hourlyOverheadInr" | "unitMarginInr" | "scrapUnitsIfEscape" | "recallReserveInr">;
   workOrderSku?: string;
   captures: { slotId: SlotId; dataUrl: string }[];
   goldens?: { slotId: SlotId; dataUrl: string }[];
@@ -25,7 +27,17 @@ export interface InspectRequest {
 export async function runInspection(
   request: InspectRequest,
 ): Promise<InspectionResult> {
-  const album = requireAlbum(request.albumId);
+  const catalogAlbum = getAlbum(request.albumId);
+  const album = request.album
+    ? ({
+        industry: "custom",
+        plantName: request.album.lineName,
+        skuName: request.album.sku,
+        workOrder: `WO-${request.album.sku}`,
+        goldenDir: catalogAlbum?.goldenDir ?? "",
+        ...request.album,
+      } as Album)
+    : requireAlbum(request.albumId);
   const workOrderSku = request.workOrderSku ?? album.sku;
   const capturedSlotIds = request.captures.map((item) => item.slotId);
   const mode: EngineMode = request.mode ?? "live";
@@ -60,7 +72,9 @@ export async function runInspection(
         goldenDataUrl: usedTaught
           ? pickGolden(
               taught.get(capture.slotId),
-              await loadGoldenDataUrl(album.id, capture.slotId),
+              getAlbum(album.id)
+                ? await loadGoldenDataUrl(album.id, capture.slotId)
+                : undefined,
             )
           : undefined,
       })),
@@ -69,6 +83,8 @@ export async function runInspection(
       await extractSlotsWithGemini({
         albumId: album.id,
         workOrderSku,
+        lineName: album.lineName,
+        slots: album.slots.map((slot) => ({ id: slot.id, titleEn: slot.titleEn })),
         captures,
       });
     extractions = live;
@@ -80,6 +96,7 @@ export async function runInspection(
   toolTrace.push("Applied risk table (rules beat model prose)");
   const findings = applyRiskRules({
     albumId: album.id,
+    album,
     workOrderSku,
     capturedSlotIds: album.slots.map((slot) => slot.id).filter((id) =>
       capturedSlotIds.includes(id),
@@ -99,7 +116,7 @@ export async function runInspection(
     decision,
     summary,
     toolTrace,
-    impact: estimateImpact(album.id),
+    impact: estimateImpact(album),
     decidedAt: new Date().toISOString(),
   };
 }

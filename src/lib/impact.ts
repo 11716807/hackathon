@@ -1,8 +1,9 @@
 import { requireAlbum } from "./catalog";
 import type { ImpactEstimate } from "./types";
 
-export function estimateImpact(albumId: string): ImpactEstimate {
-  const album = requireAlbum(albumId);
+export function estimateImpact(albumOrId: string | { holdMinutes: number; hourlyOverheadInr: number; unitMarginInr: number; scrapUnitsIfEscape: number; recallReserveInr: number }): ImpactEstimate {
+  const album =
+    typeof albumOrId === "string" ? requireAlbum(albumOrId) : albumOrId;
   const holdCostInr = Math.round(
     (album.holdMinutes / 60) * album.hourlyOverheadInr,
   );

@@ -14,6 +14,7 @@ export async function loadGoldenDataUrl(
   slotId: SlotId,
 ): Promise<string | null> {
   const album = requireAlbum(albumId);
+  if (!album.goldenDir) return null;
   const relative = goldenPath(album, slotId).replace(/^\//, "");
   const filePath = path.join(process.cwd(), "public", relative);
   try {

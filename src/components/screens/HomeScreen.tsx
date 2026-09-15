@@ -1,181 +1,66 @@
 "use client";
 
 import Link from "next/link";
-import { ALBUMS } from "@/lib/catalog";
+import { KitPicker } from "@/components/KitPicker";
+import { PolaroidFan } from "@/components/PolaroidFan";
 import { t } from "@/lib/i18n";
-import { formatInr } from "@/lib/impact";
 import { useSession } from "@/lib/session";
 
 export function HomeScreen() {
-  const {
-    locale,
-    role,
-    setRole,
-    albumId,
-    setAlbumId,
-    mode,
-    setMode,
-    album,
-    audit,
-    resetCaptures,
-    hasTaughtAlbum,
-  } = useSession();
+  const { locale, album, audit, resetCaptures, hasTaughtAlbum, goldenSrc } =
+    useSession();
   const last = audit[0];
+  const prints = album.slots.map((slot) => ({
+    src: goldenSrc(slot.id),
+    caption: locale === "hi" ? slot.titleHi : slot.titleEn,
+  }));
 
   return (
-    <div className="flex flex-1 flex-col gap-5">
-      <section className="rounded-3xl border border-gf-line bg-gf-card p-5 gf-frame">
-        <p className="text-2xl font-semibold tracking-tight text-gf-text">
-          {t(locale, "tagline")}
+    <div className="gf-home flex flex-1 flex-col items-center gap-8 lg:flex-row lg:items-center">
+      <div className="gf-home-fan w-full">
+        <PolaroidFan items={prints} />
+      </div>
+      <div className="gf-home-copy max-w-xl">
+        <p className="text-sm font-semibold tracking-[0.18em] text-gf-gold uppercase">
+          {last ? `${last.decision} · ${album.lineName}` : t(locale, "eyebrow")}
         </p>
-        <p className="mt-3 text-base leading-7 text-gf-muted">
-          First photograph a real good setup (golden album). Then photograph
-          today’s setup. The gate compares the two.
-        </p>
-      </section>
-
-      <section>
-        <p className="gf-label mb-2">
-          {t(locale, "role")}
-        </p>
-        <div className="grid grid-cols-2 gap-2">
-          {(["operator", "supervisor"] as const).map((value) => (
-            <button
-              key={value}
-              type="button"
-              onClick={() => setRole(value)}
-              className={`rounded-2xl border px-4 py-3 text-sm font-semibold ${
-                role === value
-                  ? "border-gf-gold bg-[#ede9fe] text-gf-gold-2"
-                  : "border-gf-line bg-white text-gf-text"
-              }`}
-            >
-              {t(locale, value)}
-            </button>
-          ))}
+        <h1 className="gf-stamp mt-3 text-[3.1rem] text-gf-text md:text-[5.2rem]">
+          {locale === "hi" ? "स्टार्ट मत करो।" : "Don’t start."}
+        </h1>
+        <p className="gf-whisper mt-4 md:text-lg">{t(locale, "pitch")}</p>
+        <div className="gf-home-shift mt-6">
+          <KitPicker />
         </div>
-      </section>
-
-      <section>
-        <p className="gf-label mb-2">
-          {t(locale, "line")}
-        </p>
-        <div className="grid gap-2">
-          {ALBUMS.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => setAlbumId(item.id)}
-              className={`rounded-2xl border px-4 py-3 text-left ${
-                albumId === item.id
-                  ? "border-gf-gold bg-[#ede9fe]"
-                  : "border-gf-line bg-white"
-              }`}
+        <div className="gf-home-actions mt-8">
+          {hasTaughtAlbum ? (
+            <Link
+              href="/check"
+              onClick={() => resetCaptures()}
+              className="gf-cta inline-flex h-14 min-w-[240px] items-center justify-center rounded-full px-8 text-base font-semibold"
             >
-              <p className="text-sm font-semibold text-gf-text">{item.lineName}</p>
-              <p className="mt-1 font-mono text-xs font-medium text-gf-muted">
-                {item.sku} · {item.skuName} · {item.workOrder}
-              </p>
-            </button>
-          ))}
-        </div>
-      </section>
-
-      <section className="rounded-2xl border border-gf-line bg-gf-card px-4 py-3">
-        <p className="gf-label">
-          {t(locale, "engine")}
-        </p>
-        <div className="mt-2 grid grid-cols-2 gap-2">
-          {(["practice", "live"] as const).map((value) => (
-            <button
-              key={value}
-              type="button"
-              onClick={() => setMode(value)}
-              className={`rounded-xl border px-3 py-2 text-sm font-semibold ${
-                mode === value
-                  ? "border-gf-gold bg-[#ede9fe] text-gf-gold-2"
-                  : "border-gf-line bg-white text-gf-text"
-              }`}
+              {t(locale, "startCheck")}
+            </Link>
+          ) : (
+            <Link
+              href="/goldens/teach"
+              className="gf-cta inline-flex h-14 min-w-[240px] items-center justify-center rounded-full px-8 text-base font-semibold"
             >
-              {t(locale, value)}
-            </button>
-          ))}
-        </div>
-        <p className="mt-2 text-sm leading-6 text-gf-muted">
-          {mode === "live" ? t(locale, "liveHint") : t(locale, "practiceHint")}
-        </p>
-      </section>
-
-      <section className="rounded-2xl border border-gf-line bg-gf-card-2 px-4 py-3">
-        <p className="gf-label">
-          {t(locale, "workOrder")}
-        </p>
-        <p className="mt-1 text-lg font-semibold">
-          {album.sku}{" "}
-          <span className="text-gf-muted font-normal">{album.skuName}</span>
-        </p>
-        <p className="mt-1 font-mono text-sm font-semibold text-gf-gold">
-          {album.workOrder} · hold {album.holdMinutes} {t(locale, "minutes")} ·
-          escape {formatInr(album.scrapUnitsIfEscape * album.unitMarginInr + album.recallReserveInr)}
-        </p>
-      </section>
-
-      <p
-        className={`rounded-2xl px-4 py-3 text-sm font-semibold ${
-          hasTaughtAlbum
-            ? "bg-[#ecfdf3] text-gf-clear"
-            : "bg-[#fdf2f8] text-gf-hold"
-        }`}
-      >
-        {hasTaughtAlbum ? t(locale, "taughtReady") : t(locale, "taughtMissing")}
-      </p>
-
-      <Link
-        href="/goldens/teach"
-        className="flex h-14 items-center justify-center rounded-2xl border-2 border-gf-gold bg-white text-base font-semibold text-gf-gold"
-      >
-        {hasTaughtAlbum ? t(locale, "reteachGoldens") : t(locale, "teachGoldens")}
-      </Link>
-
-      <Link
-        href="/check"
-        onClick={() => resetCaptures()}
-        className="gf-cta flex h-14 items-center justify-center rounded-2xl text-base font-semibold"
-      >
-        {t(locale, "startCheck")}
-      </Link>
-
-      <section>
-        <div className="mb-2 flex items-center justify-between">
-          <p className="gf-label">
-            {t(locale, "lastGate")}
-          </p>
-          <Link href="/history" className="text-sm font-semibold text-gf-gold">
-            {t(locale, "history")}
-          </Link>
-        </div>
-        {last ? (
-          <div className="rounded-2xl border border-gf-line bg-gf-card px-4 py-3">
-            <p
-              className={`font-mono text-sm ${
-                last.decision === "HOLD" ? "text-gf-hold" : "text-gf-clear"
-              }`}
-            >
-              {last.decision} · {last.sku}
-            </p>
-            <p className="mt-1 text-sm text-gf-muted">{last.summary}</p>
+              {t(locale, "teachGoldens")}
+            </Link>
+          )}
+          <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm font-semibold text-gf-gold-2">
+            {hasTaughtAlbum ? (
+              <Link href="/goldens/teach">{t(locale, "reteachGoldens")}</Link>
+            ) : (
+              <Link href="/check" onClick={() => resetCaptures()}>
+                {t(locale, "startCheck")}
+              </Link>
+            )}
+            <Link href="/goldens">{t(locale, "goldens")}</Link>
           </div>
-        ) : (
-          <p className="text-sm text-gf-muted">{t(locale, "emptyHistory")}</p>
-        )}
-      </section>
-
-      <Link
-        href="/goldens"
-        className="text-center text-sm font-semibold text-gf-gold underline-offset-4 hover:underline"
-      >
-        {t(locale, "goldens")}
-      </Link>
+        </div>
+        {last ? <p className="mt-6 text-sm text-gf-muted">{last.summary}</p> : null}
+      </div>
     </div>
   );
 }

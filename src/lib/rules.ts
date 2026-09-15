@@ -1,6 +1,7 @@
-import { getSlot, requireAlbum } from "./catalog";
+import { requireAlbum } from "./catalog";
 import { primaryExtractedSku, skuMatchesWorkOrder } from "./sku";
 import type {
+  Album,
   Finding,
   SlotExtraction,
   SlotId,
@@ -11,6 +12,7 @@ const UNREADABLE_CONFIDENCE = 0.28;
 
 export interface RuleInput {
   albumId: string;
+  album?: Album;
   workOrderSku: string;
   capturedSlotIds: SlotId[];
   extractions: SlotExtraction[];
@@ -21,21 +23,21 @@ function has(flags: VisualFlag[], flag: VisualFlag): boolean {
 }
 
 function baseFinding(
-  albumId: string,
+  album: Album,
   slotId: SlotId,
   extraction?: SlotExtraction,
 ): Pick<Finding, "slotId" | "sopCite" | "extractedText" | "confidence"> {
-  const album = requireAlbum(albumId);
+  const slot = album.slots.find((item) => item.id === slotId);
   return {
     slotId,
-    sopCite: getSlot(album, slotId).sopLine,
+    sopCite: slot?.sopLine ?? `Compare ${slot?.titleEn ?? slotId} to the golden.`,
     extractedText: extraction?.extractedText || undefined,
     confidence: extraction?.confidence ?? 0,
   };
 }
 
 export function applyRiskRules(input: RuleInput): Finding[] {
-  const album = requireAlbum(input.albumId);
+  const album = input.album ?? requireAlbum(input.albumId);
   const bySlot = new Map(
     input.extractions.map((item) => [item.slotId, item]),
   );
@@ -47,7 +49,7 @@ export function applyRiskRules(input: RuleInput): Finding[] {
 
     if (!captured) {
       findings.push({
-        ...baseFinding(input.albumId, slot.id),
+        ...baseFinding(album, slot.id),
         severity: "retake",
         code: "slot_missing",
         title: `${slot.titleEn} is missing`,
@@ -59,7 +61,7 @@ export function applyRiskRules(input: RuleInput): Finding[] {
 
     if (!extraction) {
       findings.push({
-        ...baseFinding(input.albumId, slot.id),
+        ...baseFinding(album, slot.id),
         severity: "ok",
         code: "slot_ok",
         title: `${slot.titleEn} captured`,
@@ -74,12 +76,25 @@ export function applyRiskRules(input: RuleInput): Finding[] {
       extraction.confidence < UNREADABLE_CONFIDENCE
     ) {
       findings.push({
-        ...baseFinding(input.albumId, slot.id, extraction),
+        ...baseFinding(album, slot.id, extraction),
         severity: "retake",
         code: "slot_retake",
         title: `Retake ${slot.titleEn.toLowerCase()}`,
         detail:
           "The photo is too unclear to judge. Same angle as the golden, more light, fill the frame.",
+      });
+      continue;
+    }
+
+    if (has(extraction.flags, "mismatch")) {
+      findings.push({
+        ...baseFinding(album, slot.id, extraction),
+        severity: "must_fix",
+        code: "slot_mismatch",
+        title: `${slot.titleEn} does not match the golden`,
+        detail:
+          extraction.visualSummary ||
+          "Today’s setup is not the same as the last good run.",
       });
       continue;
     }
@@ -91,7 +106,7 @@ export function applyRiskRules(input: RuleInput): Finding[] {
       );
       if (!extraction.extractedText.trim()) {
         findings.push({
-          ...baseFinding(input.albumId, slot.id, extraction),
+          ...baseFinding(album, slot.id, extraction),
           severity: "must_fix",
           code: "label_unreadable",
           title: "Label SKU could not be read",
@@ -103,7 +118,7 @@ export function applyRiskRules(input: RuleInput): Finding[] {
       if (!matches) {
         const seen = primaryExtractedSku(extraction.extractedText);
         findings.push({
-          ...baseFinding(input.albumId, slot.id, extraction),
+          ...baseFinding(album, slot.id, extraction),
           severity: "must_fix",
           code: "label_mismatch",
           title: "Label does not match the work order",
@@ -117,7 +132,7 @@ export function applyRiskRules(input: RuleInput): Finding[] {
 
     if (slot.id === "guard" && has(extraction.flags, "guard_open")) {
       findings.push({
-        ...baseFinding(input.albumId, slot.id, extraction),
+        ...baseFinding(album, slot.id, extraction),
         severity: "must_fix",
         code: "guard_open",
         title: "Guard is open",
@@ -129,7 +144,7 @@ export function applyRiskRules(input: RuleInput): Finding[] {
 
     if (slot.id === "jig" && has(extraction.flags, "jig_misaligned")) {
       findings.push({
-        ...baseFinding(input.albumId, slot.id, extraction),
+        ...baseFinding(album, slot.id, extraction),
         severity: "must_fix",
         code: "jig_misaligned",
         title: "Part is not seated",
@@ -143,7 +158,7 @@ export function applyRiskRules(input: RuleInput): Finding[] {
       has(extraction.flags, "first_piece_defect")
     ) {
       findings.push({
-        ...baseFinding(input.albumId, slot.id, extraction),
+        ...baseFinding(album, slot.id, extraction),
         severity: "must_fix",
         code: "first_piece_defect",
         title: "First piece has a visible defect",
@@ -159,7 +174,7 @@ export function applyRiskRules(input: RuleInput): Finding[] {
       has(extraction.flags, "hopper_wrong_material")
     ) {
       findings.push({
-        ...baseFinding(input.albumId, slot.id, extraction),
+        ...baseFinding(album, slot.id, extraction),
         severity: "must_fix",
         code: "hopper_wrong_material",
         title: "Wrong material staged",
@@ -172,7 +187,7 @@ export function applyRiskRules(input: RuleInput): Finding[] {
 
     if (slot.id === "hopper" && has(extraction.flags, "hopper_messy")) {
       findings.push({
-        ...baseFinding(input.albumId, slot.id, extraction),
+        ...baseFinding(album, slot.id, extraction),
         severity: "warn",
         code: "hopper_messy",
         title: "Staging is messy",
@@ -182,7 +197,7 @@ export function applyRiskRules(input: RuleInput): Finding[] {
     }
 
     findings.push({
-      ...baseFinding(input.albumId, slot.id, extraction),
+      ...baseFinding(album, slot.id, extraction),
       severity: "ok",
       code: "slot_ok",
       title: `${slot.titleEn} matches`,

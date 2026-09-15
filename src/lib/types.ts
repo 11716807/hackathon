@@ -3,6 +3,7 @@ export type Locale = "en" | "hi";
 export type Severity = "must_fix" | "warn" | "ok" | "retake";
 export type GateDecision = "HOLD" | "CLEAR";
 export type EngineMode = "live" | "practice";
+export type LayoutMode = "auto" | "phone" | "laptop";
 
 export type VisualFlag =
   | "guard_open"
@@ -15,7 +16,8 @@ export type VisualFlag =
   | "hopper_wrong_material"
   | "hopper_ok"
   | "hopper_messy"
-  | "unreadable";
+  | "unreadable"
+  | "mismatch";
 
 export type FindingCode =
   | "label_mismatch"
@@ -27,9 +29,10 @@ export type FindingCode =
   | "hopper_messy"
   | "slot_ok"
   | "slot_retake"
-  | "slot_missing";
+  | "slot_missing"
+  | "slot_mismatch";
 
-export type SlotId = "jig" | "label" | "guard" | "hopper" | "first_piece";
+export type SlotId = string;
 
 export interface SlotSpec {
   id: SlotId;
@@ -42,7 +45,7 @@ export interface SlotSpec {
 
 export interface Album {
   id: string;
-  industry: "packaging" | "electronics" | "desk";
+  industry: "packaging" | "electronics" | "desk" | "custom";
   plantName: string;
   lineName: string;
   sku: string;

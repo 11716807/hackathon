@@ -13,7 +13,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  if (!body.albumId || !getAlbum(body.albumId)) {
+  if (!body.albumId) {
+    return NextResponse.json({ error: "Unknown album" }, { status: 400 });
+  }
+  if (!body.album && !getAlbum(body.albumId)) {
     return NextResponse.json({ error: "Unknown album" }, { status: 400 });
   }
 

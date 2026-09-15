@@ -209,5 +209,12 @@ export function getSlot(album: Album, slotId: SlotId): SlotSpec {
 }
 
 export function goldenPath(album: Album, slotId: SlotId): string {
+  if (!album.goldenDir) return "";
   return `${album.goldenDir}/${slotId}.svg`;
 }
+
+export const EMPTY_FRAME =
+  "data:image/svg+xml;charset=utf-8," +
+  encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 400"><rect fill="#ece6f6" width="320" height="400"/><text x="160" y="208" text-anchor="middle" fill="#5b21b6" font-family="sans-serif" font-size="20">Add photo</text></svg>`,
+  );

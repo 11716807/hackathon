@@ -40,7 +40,7 @@ export function decideGate(findings: Finding[]): {
 
   return {
     decision: "CLEAR",
-    summary: "Clear to run. All five frames match the work order and golden.",
+    summary: "Clear to run. All frames match the last good run.",
   };
 }
 
