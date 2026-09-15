@@ -15,36 +15,52 @@ export function PolaroidFan({ items }: PolaroidFanProps) {
       {items.map((item, index) => {
         const offset = (index - mid) * step;
         const rotate = (index - mid) * (items.length > 6 ? 5 : 8);
+        const float = index % 2 === 0 ? -8 : 6;
+        const dealDelay = 0.05 + index * 0.08;
+
         return (
-        <motion.div
-          key={`${item.caption}-${index}`}
-          className="absolute top-[8%] left-1/2 w-[58%] origin-bottom"
-          initial={false}
-          animate={{
-            x: `calc(-50% + ${offset}px)`,
-            y: [0, index % 2 === 0 ? -8 : 6, 0],
-            rotate,
-          }}
-          transition={{
-            x: { duration: 0.6, delay: index * 0.07 },
-            rotate: { duration: 0.6, delay: index * 0.07 },
-            y: {
-              duration: 5.2 + index * 0.35,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: index * 0.18,
-            },
-          }}
-          style={{
-            zIndex: index + 1,
-            transform: `translateX(calc(-50% + ${offset}px)) rotate(${rotate}deg)`,
-          }}
-        >
-          <figure className="gf-print">
-            <img src={item.src} alt="" />
-            <figcaption>{item.caption}</figcaption>
-          </figure>
-        </motion.div>
+          <div
+            key={`${item.src}-${item.caption}-${index}`}
+            className="absolute top-[8%] left-1/2 w-[58%] -translate-x-1/2"
+            style={{ zIndex: index + 1 }}
+          >
+            <motion.div
+              className="origin-bottom"
+              initial={{ x: 0, y: 42, rotate: 0, scale: 0.82 }}
+              animate={{
+                x: offset,
+                y: [0, float, 0],
+                rotate,
+                scale: 1,
+              }}
+              transition={{
+                x: {
+                  type: "spring",
+                  stiffness: 260,
+                  damping: 20,
+                  delay: dealDelay,
+                },
+                rotate: {
+                  type: "spring",
+                  stiffness: 200,
+                  damping: 16,
+                  delay: dealDelay,
+                },
+                scale: { duration: 0.38, delay: dealDelay },
+                y: {
+                  duration: 5.2 + index * 0.35,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                  delay: 0.6 + index * 0.08,
+                },
+              }}
+            >
+              <figure className="gf-print">
+                <img src={item.src} alt="" />
+                <figcaption>{item.caption}</figcaption>
+              </figure>
+            </motion.div>
+          </div>
         );
       })}
     </div>

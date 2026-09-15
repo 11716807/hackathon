@@ -79,6 +79,20 @@ const copy = {
     taughtMissing: "Still using drawings. Photograph a real album first.",
     kitTitle: "Simple real kit (table is enough)",
     clearTaught: "Remove real album",
+    solvesTitle: "This stops a bad start",
+    solvesSku: "Yesterday’s SKU still on the label",
+    solvesGuard: "Guard left open after changeover",
+    solvesHopper: "Last job’s material still in the hopper",
+    solvesPiece: "A first piece that is already scrap",
+    faqTitle: "Questions",
+    faqStopQ: "What does this stop?",
+    faqThemeQ: "How does this match the manufacturing theme?",
+    faqThemeA:
+      "The theme is manufacturing — intelligent operations on the line. Golden Frame is a changeover interlock: do not start until today’s setup matches the last good run. Wrong SKU, open guard, leftover material, and a bad first piece are plant problems, not a chatbot.",
+    faqWhoQ: "Who decides HOLD or CLEAR?",
+    faqWhoA:
+      "Photos are read, then a risk table can HOLD. A person on the phone still taps the gate. The model never starts the machine.",
+    footer: "Golden Frame · Manufacturing changeover gate",
   },
   hi: {
     brand: "गोल्डन फ्रेम",
@@ -158,6 +172,20 @@ const copy = {
     taughtMissing: "अभी ड्रॉइंग चल रही है। पहले असली एल्बम फोटो करें।",
     kitTitle: "आसान असली किट (टेबल काफी)",
     clearTaught: "असली एल्बम हटाएँ",
+    solvesTitle: "यह गलत स्टार्ट रोकता है",
+    solvesSku: "कल का SKU अभी लेबल पर है",
+    solvesGuard: "चेंजओवर के बाद गार्ड खुला रह गया",
+    solvesHopper: "पिछली जॉब का मटीरियल अभी हॉपर में है",
+    solvesPiece: "पहला पीस पहले से स्क्रैप है",
+    faqTitle: "सवाल",
+    faqStopQ: "यह क्या रोकता है?",
+    faqThemeQ: "यह मैन्युफैक्चरिंग थीम से कैसे जुड़ता है?",
+    faqThemeA:
+      "थीम है मैन्युफैक्चरिंग — लाइन पर इंटेलिजेंट ऑपरेशन्स। गोल्डन फ्रेम चेंजओवर इंटरलॉक है: आज का सेटअप पिछली अच्छी रन जैसा हो, तभी स्टार्ट। गलत SKU, खुला गार्ड, बचा मटीरियल, खराब पहला पीस — ये प्लांट की समस्याएँ हैं, चैटबॉट नहीं।",
+    faqWhoQ: "HOLD या CLEAR कौन तय करता है?",
+    faqWhoA:
+      "फोटो पढ़ी जाती हैं, फिर रिस्क टेबल HOLD कर सकता है। गेट फोन पर इंसान टैप करता है। मॉडल मशीन स्टार्ट नहीं करता।",
+    footer: "गोल्डन फ्रेम · मैन्युफैक्चरिंग चेंजओवर गेट",
   },
 } as const;
 

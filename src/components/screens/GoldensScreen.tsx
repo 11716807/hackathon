@@ -28,7 +28,7 @@ export function GoldensScreen() {
       </p>
 
       <div className="mt-4 w-full">
-        <PolaroidFan items={prints} />
+        <PolaroidFan key={album.id} items={prints} />
       </div>
 
       <Link
