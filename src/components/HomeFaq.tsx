@@ -7,6 +7,16 @@ import type { Locale } from "@/lib/types";
 const ITEMS: { id: string; question: CopyKey; answer?: CopyKey; bullets?: CopyKey[] }[] =
   [
     {
+      id: "problem",
+      question: "faqProblemQ",
+      answer: "faqProblemA",
+    },
+    {
+      id: "without",
+      question: "faqWithoutQ",
+      answer: "faqWithoutA",
+    },
+    {
       id: "stop",
       question: "faqStopQ",
       bullets: ["solvesSku", "solvesGuard", "solvesHopper", "solvesPiece"],
@@ -24,7 +34,7 @@ const ITEMS: { id: string; question: CopyKey; answer?: CopyKey; bullets?: CopyKe
   ];
 
 export function HomeFaq({ locale }: { locale: Locale }) {
-  const [open, setOpen] = useState("stop");
+  const [open, setOpen] = useState("problem");
 
   return (
     <section className="gf-qa">

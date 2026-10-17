@@ -90,7 +90,7 @@ describe("applyRiskRules", () => {
 
   it("does not retake a clear photo just because confidence is missing", () => {
     const findings = applyRiskRules({
-      albumId: "desk-charge",
+      albumId: "line3-a17",
       workOrderSku: "A-17",
       capturedSlotIds: ["jig", "label", "guard", "hopper", "first_piece"],
       extractions: [
@@ -98,28 +98,28 @@ describe("applyRiskRules", () => {
           slotId: "jig",
           extractedText: "",
           flags: ["jig_aligned"],
-          visualSummary: "laptop on desk",
+          visualSummary: "bottle seated in nest",
           confidence: 0,
         },
         {
           slotId: "label",
           extractedText: "A-17",
           flags: ["label_present"],
-          visualSummary: "sticker",
+          visualSummary: "label roll",
           confidence: 0,
         },
         {
           slotId: "guard",
           extractedText: "",
           flags: ["guard_closed"],
-          visualSummary: "lid shut",
+          visualSummary: "guard closed",
           confidence: 0,
         },
         {
           slotId: "hopper",
           extractedText: "",
           flags: ["hopper_ok"],
-          visualSummary: "plugged in",
+          visualSummary: "correct resin",
           confidence: 0,
         },
         {

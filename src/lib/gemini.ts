@@ -152,7 +152,7 @@ export async function extractSlotsWithGemini(input: {
     slots = album.slots.map((slot) => ({ id: slot.id, titleEn: slot.titleEn }));
   }
   const allowed = slots.map((slot) => slot.id);
-  const modelName = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+  const modelName = process.env.GEMINI_MODEL || "gemini-3.8-flash";
   const client = new GoogleGenerativeAI(apiKey);
   const model = client.getGenerativeModel({
     model: modelName,
@@ -169,7 +169,7 @@ export async function extractSlotsWithGemini(input: {
   const parts: Array<{ text: string } | { inlineData: { mimeType: string; data: string } }> =
     [
       {
-        text: `You inspect a factory / desk setup. Judge the TODAY photo against GOLDEN if present.
+        text: `You inspect a factory changeover setup. Judge the TODAY photo against GOLDEN if present.
 Work order SKU: ${input.workOrderSku}
 Line: ${lineName}
 

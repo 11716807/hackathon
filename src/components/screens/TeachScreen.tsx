@@ -38,16 +38,52 @@ export function TeachScreen() {
   const remaining = album.slots.filter((slot) => !shots[slot.id]);
   const ready = album.slots.length > 0 && remaining.length === 0;
 
-  function save() {
-    if (!ready) return;
-    saveTaughtAlbum(shots);
-    setNotice(t(locale, "taughtReady"));
+  const [saving, setSaving] = useState(false);
+
+  async function save() {
+    if (!ready || saving) return;
+    setSaving(true);
+    try {
+      await saveTaughtAlbum(shots);
+      setNotice(t(locale, "taughtReady"));
+      router.push("/");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function goBack() {
     router.push("/");
   }
 
   return (
     <div className="flex flex-1 flex-col">
-      <p className="text-center text-sm font-semibold tracking-[0.16em] text-gf-gold uppercase">
+      <div className="mx-auto flex w-full max-w-xl items-center justify-between gap-3">
+        <button
+          type="button"
+          onClick={goBack}
+          className="text-sm font-semibold text-gf-gold-2"
+        >
+          ← {t(locale, "back")}
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            if (ready) void save();
+            else goBack();
+          }}
+          disabled={saving}
+          className={`rounded-full px-4 py-2 text-sm font-semibold ${
+            ready
+              ? "bg-[#5b21b6] text-white"
+              : "bg-white/70 text-gf-gold-2"
+          }`}
+        >
+          {ready ? t(locale, "done") : t(locale, "back")}
+        </button>
+      </div>
+
+      <p className="mt-3 text-center text-sm font-semibold tracking-[0.16em] text-gf-gold uppercase">
         {t(locale, "teachTitle")}
       </p>
       <p className="gf-whisper mx-auto mt-2 max-w-md text-center">
@@ -77,7 +113,7 @@ export function TeachScreen() {
         </button>
       </div>
 
-      <div className="mx-auto mt-4 grid w-full max-w-xl gap-3 pb-28">
+      <div className="mx-auto mt-4 grid w-full max-w-xl gap-3 pb-36">
         {album.slots.map((slot) => {
           const photo = shots[slot.id];
           return (
@@ -126,19 +162,31 @@ export function TeachScreen() {
         })}
       </div>
 
-      {ready ? (
-        <button
-          type="button"
-          onClick={save}
-          className="gf-cta mx-auto mb-8 flex h-14 min-w-[220px] items-center justify-center rounded-full px-8 text-base font-semibold"
-        >
-          {t(locale, "saveGoldens")}
-        </button>
-      ) : (
-        <p className="mb-8 text-center text-sm text-gf-muted">
-          {t(locale, "needAll")}
-        </p>
-      )}
+      <div className="sticky bottom-20 z-20 mx-auto mb-4 flex w-full max-w-xl flex-col items-center gap-2 bg-gradient-to-t from-[#e8e0f4] via-[#e8e0f4]/95 to-transparent pt-6">
+        {ready ? (
+          <button
+            type="button"
+            onClick={() => void save()}
+            disabled={saving}
+            className="gf-cta flex h-14 min-w-[220px] items-center justify-center rounded-full px-8 text-base font-semibold"
+          >
+            {t(locale, "done")} · {t(locale, "saveGoldens")}
+          </button>
+        ) : (
+          <>
+            <p className="text-center text-sm text-gf-muted">
+              {t(locale, "needAll")}
+            </p>
+            <button
+              type="button"
+              onClick={goBack}
+              className="h-12 min-w-[180px] rounded-full bg-white/80 px-6 text-sm font-semibold text-gf-gold-2"
+            >
+              ← {t(locale, "back")}
+            </button>
+          </>
+        )}
+      </div>
 
       <CaptureDock
         onSnap={() => {

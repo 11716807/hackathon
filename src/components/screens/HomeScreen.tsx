@@ -35,13 +35,23 @@ export function HomeScreen() {
           </div>
           <div className="gf-home-actions mt-8">
             {hasTaughtAlbum ? (
-              <Link
-                href="/check"
-                onClick={() => resetCaptures()}
-                className="gf-cta inline-flex h-14 min-w-[240px] items-center justify-center rounded-full px-8 text-base font-semibold"
-              >
-                {t(locale, "startCheck")}
-              </Link>
+              <div className="flex flex-wrap items-center gap-3">
+                <Link
+                  href="/check"
+                  onClick={() => resetCaptures()}
+                  className="gf-cta inline-flex h-14 min-w-[240px] items-center justify-center rounded-full px-8 text-base font-semibold"
+                >
+                  {t(locale, "startCheck")}
+                </Link>
+                <Link
+                  href="/goldens/teach"
+                  className="inline-flex h-11 items-center gap-1.5 rounded-full bg-white/70 px-4 text-sm font-semibold text-gf-gold-2"
+                  title={t(locale, "editGoldens")}
+                >
+                  <span aria-hidden>✎</span>
+                  {t(locale, "editGoldens")}
+                </Link>
+              </div>
             ) : (
               <Link
                 href="/goldens/teach"
@@ -51,13 +61,11 @@ export function HomeScreen() {
               </Link>
             )}
             <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm font-semibold text-gf-gold-2">
-              {hasTaughtAlbum ? (
-                <Link href="/goldens/teach">{t(locale, "reteachGoldens")}</Link>
-              ) : (
+              {!hasTaughtAlbum ? (
                 <Link href="/check" onClick={() => resetCaptures()}>
                   {t(locale, "startCheck")}
                 </Link>
-              )}
+              ) : null}
               <Link href="/goldens">{t(locale, "goldens")}</Link>
             </div>
           </div>

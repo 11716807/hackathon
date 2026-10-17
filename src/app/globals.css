@@ -152,6 +152,50 @@ textarea {
   line-height: 1.55;
 }
 
+.gf-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(22, 11, 36, 0.45);
+  backdrop-filter: blur(6px);
+}
+
+.gf-sheet {
+  width: min(28rem, 100%);
+  max-height: min(88dvh, 40rem);
+  overflow: auto;
+  border-radius: 1.5rem 1.5rem 1.25rem 1.25rem;
+  background: linear-gradient(180deg, #fffdf8 0%, #f3eefb 100%);
+  padding: 1.25rem 1.25rem 1.5rem;
+  box-shadow: 0 24px 48px rgba(22, 11, 36, 0.28);
+  animation: gf-sheet-up 0.22s ease-out;
+}
+
+@keyframes gf-sheet-up {
+  from {
+    transform: translateY(1rem);
+    opacity: 0.6;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@media (min-width: 768px) {
+  .gf-sheet-backdrop {
+    align-items: center;
+  }
+
+  .gf-sheet {
+    border-radius: 1.5rem;
+  }
+}
+
 .gf-chip {
   border: 0;
   background: transparent;

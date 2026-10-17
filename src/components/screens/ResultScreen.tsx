@@ -28,11 +28,25 @@ export function ResultScreen() {
 
   if (!result) {
     return (
-      <div className="flex flex-1 flex-col items-center justify-center gap-3 text-center">
-        <p className="gf-whisper">No gate yet.</p>
-        <Link href="/check" className="font-semibold text-gf-gold-2">
+      <div className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center gap-4 px-4 text-center">
+        <p className="gf-stamp text-4xl text-gf-gold-2">
+          {locale === "hi" ? "जाँच बाकी" : "Check first"}
+        </p>
+        <p className="gf-whisper">
+          {locale === "hi"
+            ? "HOLD / CLEAR यहाँ तभी दिखेगा जब आप चेंजओवर जाँच पूरा करें। पुराने गेट History में हैं।"
+            : "HOLD / CLEAR shows here after you finish a changeover check. Logged gates are under History."}
+        </p>
+        <Link
+          href="/check"
+          className="gf-cta inline-flex h-12 items-center justify-center rounded-full px-6 text-sm font-semibold"
+        >
           {t(locale, "startCheck")}
         </Link>
+        <div className="flex flex-wrap items-center justify-center gap-4 text-sm font-semibold text-gf-gold-2">
+          <Link href="/history">{t(locale, "history")}</Link>
+          <Link href="/">← {t(locale, "home")}</Link>
+        </div>
       </div>
     );
   }

@@ -34,7 +34,7 @@ cp .env.example .env.local
 
 ```
 GEMINI_API_KEY=your_key          # only for Live engine
-GEMINI_MODEL=gemini-2.5-flash    # or gemini-3.8-flash
+GEMINI_MODEL=gemini-3.8-flash
 NEXT_PUBLIC_DEFAULT_ENGINE=practice
 ```
 
@@ -96,16 +96,15 @@ Live Gemini is not called in CI.
 
 ## Deploy (Cup: Cloud Run)
 
+Step-by-step Google Cloud setup: [`docs/GCP_SETUP.md`](docs/GCP_SETUP.md).
+
 ```bash
-gcloud run deploy golden-frame \
-  --source . \
-  --allow-unauthenticated \
-  --set-env-vars GEMINI_API_KEY=...,GEMINI_MODEL=gemini-2.5-flash
+# Needs: brew install --cask google-cloud-sdk && gcloud init
+# GEMINI_API_KEY in .env.local
+npm run deploy:cloudrun
 ```
 
-Or build the `Dockerfile` (port **8080**).
-
-Firebase Hosting can sit in front; the app is a mobile website (PWA manifest included).
+Or manually with the `Dockerfile` (port **8080**). Build runs in Cloud Build — local Docker not required.
 
 ---
 

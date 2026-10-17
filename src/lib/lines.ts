@@ -75,16 +75,25 @@ export function writeStoredLines(lines: StoredLine[]) {
   window.localStorage.setItem(LINES_KEY, JSON.stringify(lines));
 }
 
+/** Retired demo kits — ignore if still present in local/Firestore. */
+const RETIRED_LINE_IDS = new Set(["desk-charge"]);
+
 export function resolveAlbums(stored: StoredLine[]): Album[] {
-  const byId = new Map(stored.map((line) => [line.id, line]));
+  const active = stored.filter((line) => !RETIRED_LINE_IDS.has(line.id));
+  const byId = new Map(active.map((line) => [line.id, line]));
   const catalog = ALBUMS.map((album) => {
     const over = byId.get(album.id);
     return over ? storedToAlbum({ ...over, templateId: album.id }) : album;
   });
-  const extras = stored
+  const extras = active
     .filter((line) => !ALBUMS.some((album) => album.id === line.id))
     .map(storedToAlbum);
   return [...catalog, ...extras];
+}
+
+/** True when the line was user-created (not a built-in catalog kit). */
+export function isCustomLineId(id: string): boolean {
+  return !ALBUMS.some((album) => album.id === id);
 }
 
 export function newSlot(label: string): SlotSpec {

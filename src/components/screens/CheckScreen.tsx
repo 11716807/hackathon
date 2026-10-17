@@ -42,6 +42,26 @@ export function CheckScreen() {
     setChecking(true);
     setNotice(null);
     try {
+      const capturePayload = album.slots
+        .map((slot) => captures[slot.id])
+        .filter(Boolean)
+        .map((capture) => ({
+          slotId: capture!.slotId,
+          dataUrl: capture!.dataUrl,
+        }));
+
+      // Evidence copy in Cloud Storage (captures/ prefix, 30-day lifecycle).
+      void fetch("/api/captures", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          albumId: album.id,
+          captures: capturePayload,
+        }),
+      }).catch(() => {
+        // Inspect still runs even if Storage backup fails.
+      });
+
       const body = {
         albumId: album.id,
         album: {
@@ -63,13 +83,7 @@ export function CheckScreen() {
               ? "clear_all"
               : "hold_label_and_guard"
             : undefined,
-        captures: album.slots
-          .map((slot) => captures[slot.id])
-          .filter(Boolean)
-          .map((capture) => ({
-            slotId: capture!.slotId,
-            dataUrl: capture!.dataUrl,
-          })),
+        captures: capturePayload,
         goldens: hasTaughtAlbum
           ? album.slots
               .map((slot) =>

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { ALBUMS } from "./catalog";
-import { cloneLine, newSlot, resolveAlbums } from "./lines";
+import { cloneLine, isCustomLineId, newSlot, resolveAlbums } from "./lines";
 
 describe("custom lines", () => {
   it("adds a packing line with copied frame labels", () => {
@@ -29,5 +29,10 @@ describe("custom lines", () => {
     const slot = newSlot("Hopper lid");
     expect(slot.titleEn).toBe("Hopper lid");
     expect(slot.id.startsWith("slot-")).toBe(true);
+  });
+
+  it("marks only user-created lines as custom", () => {
+    expect(isCustomLineId("line3-a17")).toBe(false);
+    expect(isCustomLineId("line-abcdef12")).toBe(true);
   });
 });

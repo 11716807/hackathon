@@ -3,18 +3,6 @@ import { dirname, join } from "node:path";
 
 const albums = [
   {
-    dir: "public/goldens/desk-charge",
-    sku: "A-17",
-    accent: "#7c3aed",
-    labels: {
-      jig: ["LAPTOP", "ON DESK"],
-      label: ["CHARGER", "A-17"],
-      guard: ["LID", "CLOSED"],
-      hopper: ["CABLE", "PLUGGED"],
-      first_piece: ["LIGHT", "CHARGING"],
-    },
-  },
-  {
     dir: "public/goldens/line3-a17",
     sku: "A-17 BLUE",
     accent: "#8b5cf6",

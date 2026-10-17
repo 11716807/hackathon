@@ -31,24 +31,35 @@ export function GoldensScreen() {
         <PolaroidFan key={album.id} items={prints} />
       </div>
 
-      <Link
-        href="/goldens/teach"
-        className="gf-cta mt-4 inline-flex h-14 items-center justify-center rounded-full px-8 text-base font-semibold"
-      >
-        {hasTaughtAlbum ? t(locale, "reteachGoldens") : t(locale, "teachGoldens")}
-      </Link>
       {hasTaughtAlbum ? (
-        <button
-          type="button"
-          onClick={() => {
-            clearTaughtAlbum();
-            setNotice(t(locale, "taughtMissing"));
-          }}
-          className="mt-4 text-sm font-semibold text-gf-hold"
+        <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
+          <Link
+            href="/goldens/teach"
+            className="inline-flex h-11 items-center gap-1.5 rounded-full bg-white/70 px-5 text-sm font-semibold text-gf-gold-2"
+          >
+            <span aria-hidden>✎</span>
+            {t(locale, "editGoldens")}
+          </Link>
+          <button
+            type="button"
+            onClick={() => {
+              void clearTaughtAlbum().then(() =>
+                setNotice(t(locale, "taughtMissing")),
+              );
+            }}
+            className="text-sm font-semibold text-gf-hold"
+          >
+            {t(locale, "clearTaught")}
+          </button>
+        </div>
+      ) : (
+        <Link
+          href="/goldens/teach"
+          className="gf-cta mt-4 inline-flex h-14 items-center justify-center rounded-full px-8 text-base font-semibold"
         >
-          {t(locale, "clearTaught")}
-        </button>
-      ) : null}
+          {t(locale, "teachGoldens")}
+        </Link>
+      )}
     </div>
   );
 }

@@ -24,7 +24,7 @@ describe("gemini helpers", () => {
   it("maps friendly names and percent confidence", () => {
     expect(resolveSlotId("charger sticker")).toBe("label");
     expect(resolveSlotId("lid closed")).toBe("guard");
-    expect(resolveSlotId("laptop on desk")).toBe("jig");
+    expect(resolveSlotId("fixture seated")).toBe("jig");
     expect(normalizeConfidence(undefined)).toBe(0.8);
     expect(normalizeConfidence(80)).toBe(0.8);
   });
